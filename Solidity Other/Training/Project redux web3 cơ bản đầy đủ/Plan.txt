@@ -61,4 +61,39 @@ Khi dùng metamask: ta đổi account mà account chưa connect, đổi mạng m
 Trong metamask có thể có các chain chưa tồn tại. Nó chỉ mặc định kết nối vào các chain của ethereum. VD dùng lần đầu mà muốn connect vào BSC thì phải connect thủ công. Và ta cx k có cách nào detect toàn bộ loại mạng trên thế giới được.
 => Khi làm app, họ thường check luôn nếu netId k đúng thì hiện pop up yêu cầu người dùng tự chuyển đổi mạng thủ công. Ta có thể bắt nó và check nếu k đúng mạng thì hiện link hướng dẫn đổi mạng cho họ tùy. 
 
+Hiểu bản chất của server: Tại sao React lại cần 1 static server?
+Hiện tượng: khi ta dùng chạy npm start-> nó chạy được file react của ta trên server localhost; khi ta mở file index.html bình thường nó ra trang trắng; khi ta npm run build thì mở index trong build ra trang trắng, sửa thêm . vào đường link thì hiện nhưng k hiện ảnh; còn mở file html k dùng react thì ok
 
+Tại sao ta chạy được trên máy file HTML=> Thực ra là ta ném nó vào browser thì browser biên dịch HTML và JS ra ui cho ta nhìn thấy. Đó là tất cả và ta có thể coi luôn cái File Explorer của ta như 1 server cũng được v và khi ta mở file lên thì File Explorer gửi nó cho Browser để hiển thị lại cho ta
+=> Đó là ta coi như v, tức là bình thường ở bất cứ máy tính nào, ta đều có thể chạy được web mà k cần server, đơn giản chỉ là mở lên thôi và server k có vai trò gì ở đây.
+
+Tại sao lại cần server? Bên trên ta mở file trong File Explorer, thế nếu ta muốn tất cả mọi người đều nhìn thấy trang web của ta thì họ không mở được vì trong File Explorer của họ đâu có file html=> server ra đời như 1 File Explorer public v. Mọi người gửi request vào server để server lấy file html nằm bên trong nó ra gửi lại cho client.
+Dùng VSC với live server thì cơ chế 1 server cũng như v nhưng nếu mở file bình thường trong trình duyệt thì là mở trực tiếp.
+
+Có 2 loại server là static server và dynamic server: static server đơn giản là gửi các trang html, ảnh,.. Nó gửi các file lưu trữ nguyên vẹn cố định; dynamic server gồm static server và các thứ đi kèm VD cơ sở dữ liệu. Dynamic server có khả năng cập nhập các file html gửi tới trình duyệt thông qua http server. Người dùng có thể POST or PUT chẳng hạn để dữ liệu trên file html được thay đổi vĩnh viễn và server lưu lại gửi tiếp cho những người khác.
+Đa phần các trang web dùng dynamic server. Thực ra nó chứa static server bên trong là do. Khi người dùng gửi request, server sẽ lấy file request và xử lý nếu cần r gửi lại thì cái bước xử lý nếu cần đó là bước "dynamic" thay đổi file data file html
+
+Tại sao react hiện ra màn hình trắng khi chạy file index.html => thực ra do nhu cầu chả ai xây 1 app mà chỉ dùng file explorer cả mà chắc chắn có 1 server khi dùng trong thực tế, nên react đã cấu hình cho file index.html chỉ hiển thị khi có 1 server chạy ở 1 cổng. Nếu k có server thì nó chả có gì cả.
+Cơ chế: url trong cấu trúc file thư mục và url trong server khác nhau. URL bình thường có dấu chấm ở đầu để báo hiệu đường dẫn tương đối, còn trong server thì k. Do đó trong file html của dự án react nó luôn để sẵn là k có dấu chấm nên nếu k chạy nó bằng 1 server thì sẽ sẽ k mở được các đường link js, css, png
+Khi ta dùng npm start là nó đã tự động chạy 1 server ở cổng 3000. Mở trình duyệt ở cổng này thì server sẽ tự động lấy file html và các file js, css theo đường dẫn đúng của server để hiện ra cho ta
+
+Tương tự khi ta build thì thực chất npm run build chỉ là nén tất cả js, html,.. lại thành cùng 1 thư mục build mà thôi. index.html trong thư mục build chính là thứ cần chạy ở server và mở nó lên bằng server or hosting server với file index.html đó là đc
+
+Tức là muốn chạy react thì phải dùng server vì đường link của nó cấu hình k có . nên phải dùng server để refer tới link chứ thực chất file html bình thường thì k cần. Nếu sau khi build ta vẫn muốn chạy file index.html mà k dùng server cơ thì vẫn được bằng cách thêm dấu chấm vào trước mọi link bên trong(Điều này k đúng nếu chưa build vì nó chưa build nó dùng marco môi trường PUBLIC_URL éo gì ấy éo đổi được)
+Tuy nhiên khi thêm dấu chấm vào r nó vẫn k hiện ảnh vì trong các file js ta cũng dùng đường dẫn kiểu server nên éo refer được.
+Các thứ như html, css, ảnh đều là các thứ tĩnh k đổi mà sau đó mới được xử lý nếu cần nên nó sau khi build được lưu trong thư mục static là các file tĩnh. Nên lập trình nodejs nh khi thấy thư mục này lưu các file cố định, có thể thêm, bớt nhưng lúc lấy ra thì luôn cố định.
+
+Lập trình react k cần server như ta đã làm với các file html+jsx+cdn vậy. Cx k cần nodejs vì nó đơn giản là cung cho ta các package tiện lợi hơn mà thôi. Khi dùng react với nodejs, nó dùng 1 package Webpack. Package này giúp đóng gói và bắt các sự kiện để thay đổi file, update code. Package này chính là thứ tự động import các file theo đường dẫn của server để dùng với server đó.
+
+Ta có thể lưu trữ các file hosting server public or cấu hình máy của ta luôn bật làm 1 public server. Nếu deploy thì dùng web server cũng tốt ở chỗ nó support các file static tối ưu để đạt hiệu năng tốt nhất như cache, load balance,..
+
+Ở đây ta k dùng 1 database và cũng k có 1 server hoàn chỉnh. Đơn giản là code react và dùng hosting là server mặc định có giao thức get.
+Chú ý là thông thường 1 trang web mà chỉ có html, css, png thì là 1 web tĩnh do dữ liệu trên trang k thể thay đổi. Dù có các hàm làm nó thay đổi nhưng khi refresh lại trang thì mọi thứ sẽ về như ban đầu
+Nhưng thực tế ta có thể k cần server mà vẫn làm nó thay đổi được bằng cách khi người dùng tương tác ví dụ thêm 1 bức ảnh, ta có thể lưu bức ảnh nó vào 1 thư mục và lần sau đó truy cập trang web thì ta lấy tất cả file trong thư mục đó ra. Nghe tưởng hay nhưng thực chất k tốt vì data người dùng thêm vào là vô tận mà nếu dùng hosting mà chơi như v nó sẽ ngày càng phình to ra và hosting k còn chỗ chứa vì kích thước cứ tăng dần và quản lý cũng khó
+Khi đó ta mới phải dùng đến database VD Microsoft SQL nhưng để connect giữa front end và database thì chỉnh là code backend nodejs. Đương nhiên là ta có thể làm tương tự k dùng SQL mà cho backend cấu hình thành public và lưu file theo kiểu trên phình to dần như thì cũng ok nhưng quản lý data rất khó, nếu đặt trong Database SQL thì quản lý dễ hơn. Như v Backend là code phần connect giữa front end và database.
+Backend nodejs là 1 dynamic web server vì khi người dùng request thì nó lấy file html tĩnh + xử lý cùng với data từ SQL để tạo ra 1 file html đầy đủ đưa tới người dùng. Đó là công việc của backend
+
+Tuy nhiên ta thấy web của ta k có server tự tạo mà dùng server tĩnh thì data đáng lẽ k đổi được nhưng ở đây lại đổi được. NN là vì ta đã dùng blockchain như 1 database. Mỗi lần server lấy hiển thị static file thì phần code JS nó xử lý bằng cách lấy data từ blockchain nên mới đổi được. Ở đây ta có thể coi nó là phần code server cx được. 
+Đúng như nhược điểm của blockchain khi dùng làm database là chậm nhưng minh bạch. Với các dữ liệu mà có thể dùng được local database thì nên dùng để tăng tốc độ.
+
+Với local nó thg chạy trên cổng 3000 với react, với giao thưc http là 80 còn https là 443. VD nếu ta gửi request GET tới trang google thì ta gửi qua cổng 443 của remote server để lấy về đây
