@@ -1,0 +1,5 @@
+EIP-2612 với hàm permit cải thiện giao diện người dùng giúp thực hiện 1 transaction duy nhất nên chỉ trả 1 lần fee, kp chờ nx
+
+Ta dùng eth-permit để sinh ra 3 tham số r, v, s => nên dùng cách này để approve mọi hàm khi ta làm ẩn trong app để tăng UI
+
+Mỗi lần ta gọi signERC2612Permit sẽ sinh ra các tham số r, s, v là như nhau. Khi ta dùng signature đó 1 lần r thì lần sau sẽ sinh ra r, v, s khác cái trước vì số nonce thay đổi

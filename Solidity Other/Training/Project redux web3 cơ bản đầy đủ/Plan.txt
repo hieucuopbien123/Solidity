@@ -1,0 +1,64 @@
+Áp dụng PP học cũ: nghĩ cơ chế cực cơ bản xong việc lập trình các file phức tạp chẳng qua chỉ là phân chia cái cơ chế cơ bản ra mà thôi
+
+Học được cơ chế này thì bất cứ 1 cái mới nào ta cũng tùy biến được ngon
+Cơ chế: người dùng ấn nút là connect web3, người dùng đổi account thì update data theo account mới
+Nếu làm 1 file: người dùng ấn nút connect-> gọi hàm connect pop up web3-> lấy biến account, web3 về-> set nó cho biến state-> state được set đổi-> useEffect sẽ getData lại từ contract và in ra dữ liệu mới(các hàm get trong contract gọi rất nhanh, lâu nhất cũng chỉ tầm 2s thôi) vì ta useEffect cái account với hàm getData mà
+=> Rút gọn: thật ra cơ chế quá đơn giản chỉ là 1 component lớn: nút connect bấm là lấy web3, useEffect account/web3 đổi thì gọi getData => chỉ có mỗi 2 cái đó thôi nhưng nó dùng redux xong reducer để phân chia file khiến mọi thứ phức tạp
+
+Chia file: giả sử chỉ có 2 chức năng như v. Hiển thị ra account, tên mạng và thông tin của người dùng hiện tại trong contract. Giả sử có 3 component, 1 là nút bấm, 2 là hiển thị account và tên mạng, 3 là thông tin người dùng hiện tại(Ta có thể gom tất cả 1 component cx được nếu thích nhưng ta tách ra để xem thử chia file thế nào)
+actions: 1 action update account và web3
+reducer: gán account mới và web3 mới cho state
+web3: hàm window.ethereum lấy web3 và account, bắt account change
+containers: truyền web3 và account cho các components
+components: chứa 3 component bên trên. Đây là các phần tử dùng được mọi biến global của redux rồi vì ta đã truyền vào nó từ container. 1 là nút bấm có account thì disable, k thì enable, bấm vào thì gọi hàm ở thư mục web3 bên trên; 2 là web3 và account, chỉ đơn giản hiển thị ra thôi vì khi nào người dùng connect-> gọi hàm-> reducer tự bắt-> props đổi-> mọi component tự render lại; 3 là thông tin người dùng, sẽ gọi getData theo người dùng hiện tại-> vì khi người dùng hiện tại đổi thì props đổi tự render lại-> render lại sẽ gọi lại getData lại có data mới nhất
+App.js in ra 3 component đó
+
+=> từ 1 dự án 2 cục ez ta chia nó ra vcl luôn. Nếu có thêm nhiều cái khác thì tách ra nhiều reducer và combine lại-> xong các container của từng component, cái nào dùng data của reducer nào thì lấy
+=> cái trên là ta chưa dùng saga nêu dùng saga thì reducer xử lý 3 action chỉ cho việc update còn nhiều file hơn nx
+
+Khi truyền struct vào function trong remix -> như mảng: [999, 18, "Hieu", "Hello", "http"]
+
+scss là 1 cách module khác của css, ta có thể convert sang css và dùng trong trang web, lấy các template scss có sẵn 
+
+Metamask đã nhập mật khẩu sẽ tự động connect, metamask chưa nhập mật khẩu khi dùng request account or provider.enable() sẽ pop up metamask
+
+Phân tích plan mới: 
+Cơ chế: người dùng vào web, connect vào ví(2 loại)-> hiển thị thông tin của họ, nếu chưa có thì hiển thị nút cho họ thêm, nếu có thì thôi
+
+Quy trình chọn ví: user vào trang-> chỉ hiện 1 nút connect-> ấn vào nút-> hiện ra 2 options cài 2 ví khác nhau-> ấn connect thì pop up và console.log ra địa chỉ của họ, lấy biến web3, netId, và account của họ-> hiện ra hello world
+
+Cơ chế metamask: kp lúc nào nó cũng hoạt động hoàn hảo theo ý nghĩ của ta
+Nếu chưa đăng nhập, chưa từng connect với ví
+  Nó sẽ pop up để ta đăng nhập
+    Nếu ta k đăng nhập mà cancel sẽ báo lỗi
+    Nếu ta đăng nhập thì nó sẽ hiển thị ta chọn account nào để đăng nhập
+      Nếu ta k chọn sẽ báo lỗi
+      Nếu chọn thì ok
+Nếu từng connect với trang web này nhưng chưa đăng nhập
+  Nó sẽ pop up để ta đăng nhập
+    Nếu ta không đăng nhập mà cancel sẽ k báo lỗi mà coi là hàm chưa thực hiện xong. Loading vẫn quay và user chỉ có cách tự vào metamask và đăng nhập thủ công
+Nếu đăng nhập và chưa connect với web này
+  Nó pop up yêu cầu ta chọn tk để connect với web này
+Đã đăng nhập đã kết nối 
+  Chả phải làm gì 
+
+Dự án của ta tách ra làm 2-> k nên như v-> nên dùng chung 1 dự án với 1 file package json thôi nhé. VD ta cài cái logger chung 1 dự án với cả 2
+
+Nếu ta thêm 1 path như 1 dependencies trong package.json thì phải npm install nó lại để được add vào node_modules như 1 module của dự án 
+
+
+Để getData: ta mặc định render lần đầu tiên là get 1 lần, xong người dùng có thể update or thêm data mới vào thì sau khi thêm xong hệ thống phải bắt event Add (cho update và add cùng 1 event Add). Đây là cách hợp lý nhất hiện tại
+=> cho subscribe Event ở trong component Info
+
+Để bắt event bắt buộc ta phải dùng websocket vì socket là cái giúp ta thiết lập kết nối real-time. Thực chất ở dự án truffle multisig dùng package truffle contract là nó ngầm dùng websocket rồi. Ta có thể làm như v. Nếu dùng mặc định thì là HttpProvider nhưng thứ ta cần là websocket provider thì có thể đổi sang wss
+=> chú ý với local là ws thôi VD: ws://127.0.0.1:8545
+=> còn với infura có thể nó cho wss
+
+Hình như mỗi lần deploy lại có 1 địa chỉ khác thì ta phải npm install lại thì phải
+
+Khi dùng metamask: ta đổi account mà account chưa connect, đổi mạng mà mạng chain đó đã tắt thì nó coi là chưa đổi gì hết và vẫn lấy cái cũ. K cần lo là k có gì kết nối vì đã vào được trang web thì phải từng kết nối với ít nhất 1 tk r
+
+Trong metamask có thể có các chain chưa tồn tại. Nó chỉ mặc định kết nối vào các chain của ethereum. VD dùng lần đầu mà muốn connect vào BSC thì phải connect thủ công. Và ta cx k có cách nào detect toàn bộ loại mạng trên thế giới được.
+=> Khi làm app, họ thường check luôn nếu netId k đúng thì hiện pop up yêu cầu người dùng tự chuyển đổi mạng thủ công. Ta có thể bắt nó và check nếu k đúng mạng thì hiện link hướng dẫn đổi mạng cho họ tùy. 
+
+

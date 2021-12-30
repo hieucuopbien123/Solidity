@@ -1,0 +1,36 @@
+Tổng kết lệnh hay:
+enum, hàm push của array, block.timestamp, msg.value, interface + override, wei ether, tx.gasprice, indexed, keccak256(<bytes>), array.length, fallback, gasleft(), address(this).balance, transfer, send, new, library + using for, delegatecalls, super, override(,), virtual, selfdestruct(), error
+
+Phân biệt: 
+require, assert và revert
+mapping và array[]
+abi.encode và abi.encodePacked
+3 cách tạo ra 1 biến struct
+msg.sender và tx.origin
+transfer, call và send
+tạo instance và kế thừa
+revert error và revert string
+
+Probs:
+Dùng modifier để cản recursion của reentrancy hack
+Return nhiều đối số và return function trả ra nh kết quả
+duyệt map, xóa hoàn toàn 1 phần tử trong array
+gửi ether cho bất cứ ai
+gọi hàm của 1 contract khác, contract sinh contract
+update contract
+contract kế thừa contract khác
+
+Sử dụng các thư viện của openzeppelin: npm install @openzeppelin/contracts
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
+Lệnh yarn = npm install
+
+Trang web vanity-eth: cho phép sinh ra address và pivkey của nó, còn tùy chọn được đầu vào
+
+Có các trang web tìm kiếm các đợt ICO như: https://icodrops.com/ hay https://www.alameda-research.com/
+Các cộng đồng Crypto uy tín: Coin98, Coin68, SGN Capital
+Các dự án có những buổi như AMA(ask me anything) với các Dev để gây dựng lòng tin
+Các nền tảng giải quyết tốc độ giao dịch thay cho Ethereum bị chậm như Solana, Polkadot, Near
+Số lượng DApps có thể là 1 thông số so sánh các nền tảng. Còn có TVL(total value locked) là tổng lượng giá trị tài sản khóa trong smart contract của defi. TPS(Transaction Processing System) là hệ thống xử lý dữ liệu giao dịch.
+Backer là người chống lưng cho các dự án, có thể tra cứu backer cho các dự án tại: https://www.cypherhunter.com/

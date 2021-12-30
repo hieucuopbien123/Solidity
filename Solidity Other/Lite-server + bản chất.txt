@@ -1,0 +1,49 @@
+BrowserSync là công cụ giúp phát triển web mà thôi. Nó như là live reload extension của VSC khi sửa code và save phát là trang web tự động reload lại. BrowserSync giúp web tự động reload khi sửa source, thao tác ở 1 trang web sẽ thể hiện trên nhiều cửa sổ trình duyệt và thiết bị khác, mô phỏng tốc độ kết nối mạng nhanh hay chậm,..
+Cơ chế nó thông qua WebSocket để detect change đó.
+Lite-server: sử dụng browserSync library, giả lập 1 server mà ta deploy lên cho  người sử dụng, hỗ trợ Single Page App(SPA)
+npm install lite-server --save-dev / yarn add lite-server --dev
+=>lệnh --save-dev là lưu câu lệnh chạy lite server vào file package.json là
+"scripts": {
+  "dev": "lite-server"
+}=> chạy bằng: npm run dev
+còn nếu dùng npm install --global lite-server 
+thì lite-server sẽ là lệnh global và chạy với: lite-server
+
+Để dùng được ta phải tạo file bs-config.json và thêm thuộc tính server: baseDir là dir chứa các file html, css, js để hiển thị ở front end
+
+Hiểu bản chất: Tại sao Web3js dùng được ở front end?
+Thật ra nodejs ra đời đã khiến ranh giới front-end và back-end k còn rõ ràng. Ta đã biết là nodejs code có mỗi 1 tí, quan trọng là nó có nhiều package, có các package chỉ hỗ trợ cho server, package tạo server như express nhưng lại có các package chỉ dùng cho client như react(Thật ra express kp là package server mà là package trung gian giữa client và server giúp connect với nhau qua router. Code backend server thực sự là sql,..) Và nếu nodejs có module code front-end như v thì trong quá trình sử dụng front end của nodejs, có thể dùng đc các module khác của nodejs. VD: module uuidv4 để sinh số ngẫu nhiên sẽ được dùng cả ở backend server, cả ở front end với điều kiện front-end đó chạy từ nodejs như create-react-app vì front-end k sinh từ nodejs thì file html, js bth k có hàm require nên k dùng đc các module của NodeJS. Khi đó chỉ các module nào có cdn thì mới dùng đc thôi.
+CDN: với cdn thì có các cdn hỗ trợ cho html như bootstrap, có cdn hỗ trợ cho js như web3js. 
+VD: có 3 cách để tạo 1 ứng dụng react. 1 là dùng cdn remote thì dùng cdn ở file jsx như bth; 2 là tải các file react.min.js về local và script tới nó; 3 là dùng package của nodejs để tạo 1 dự án react.
+=> Web3js dùng được ở client là chuyện hiển nhiên. Nếu dùng ở server or code module front-end như react của nodejs thì dùng TT được, nếu dùng html/js bth thì dùng cdn của web3 or tải file web3.min.js về để link cx đc
+
+Hiểu bản chất như v ta có thể tùy biến mọi thứ theo ý ta. Tổng kết:
+dùng html/css/js file riêng, nếu muốn dùng các thư viện hỗ trợ html hay js thì dùng cdn or copy file remote đó vào local. 
+dùng front-end module của nodejs dùng được tất cả module khác của nodejs đươc ở front end đó luôn. 
+=>Đó là code front end, còn server backend thì vẫn phải dùng 1 file riêng để chạy server và xử lý http request. 
+httpserver, express server đều có thể implement với request nào thì gửi file html nào đi
+liteserver cũng điều khiển được, mặc định là lấy file index.js ở thư mục nào
+json-server thì k điều khiển được, nó chỉ dùng để test fetch api thôi
+
+=>đó mới chỉ là file html/js riêng để dùng. Kết nối react app của nodejs với server cx tương tự. Lúc này ta k cần server gửi lại file html liên tục cho client nx mà client vào thì sẽ request API đến server để lấy phần data mà thôi. 
+Ta dùng attribute proxy ở file package.json của client có tác dụng biến nó làm đường dẫn mặc định của server khi fetch API. VD bth ta dùng:
+axios.get('http://localhost:4000/api/new') thì bh chỉ cần axios.get('/api/new') nếu dùng "proxy": "http://localhost:4000"
+
+Phân biệt: vc ALT+L+O 1 file html tức là ta biên dịch html cho file đó, chỉ đơn giản là mở file đó lên trên trình duyệt hiển thị ra mà thôi. Nó cũng gửi request và máy ta gửi file đó lên cho nó chạy trên 1 port, giống như là giao tiếp với 1 server v nhưng k thao tác được với server j nx.
+Lite server ở TH này là đã tự được config GET là khi người dùng request vào cổng nào thì gửi lại file html được config trong bs-config.json r
+
+1 ứng dụng có thể k có server k-> no, 1 ứng dụng luôn luôn cân có 1 server. Việc ta chỉ code backend và upload cái file html/js lên 000webhostapp tức là nó tạo ra 1 server có sẵn tự động gửi file index.html lên giống như lite server v. Do ta k code backend nên làm v k tùy chỉnh được. Nếu ta code backend server nx, xong cấu hình nó thành public server, thế là ng khác truy cập được vào thôi. Tức là 1 cái tự tạo server cho ta với method GET là file index, 1 cái là ta tự tạo
+
+Hàm import chỉ được dùng trong 1 module, còn require k được định nghĩa ở front-end mà chỉ định nghĩa trong NodeJS
+=> khi thao tác với front-end thuần, ta dùng import khi có nhu cầu import 1 cái gì đó từ 1 file js khác nhưng file có export phải là type module
+=> khi thao tác với backend, ta dùng require thoải mái vì NodeJS có r
+=> khi thao tác với front-end module của NodeJS, ta có thể dùng cả require và import, thg thì dùng import { } from những thứ cần dùng thôi
+
+Như v để dùng được web3 tương tác với blockchain giả sử rinkeby đi thì: hoặc là code nó ở backend file .js thêm module web3 thoải mái, hoặc là tạo front end là 1 module từ NodeJS như create-react-app thì cũng dùng được web3 như ý.
+
+Giả sử ta dùng web3 trong nodejs k dùng front end mà ta muốn gọi 1 hàm view thì rất ok, nhưng gọi 1 transaction thì k được vì provider phải chứa msg.sender để gọi 1 transaction. Khi web3 được dùng thông qua infura url bình thường thì nó mặc định gọi từ địa chỉ 0x00 -> có thể check điều này bằng việc in ra msg.sender hay nói cách khác là địa chỉ không xác định, đơn giản là gọi thôi
+Tức là provider cũng có 2 loại, 1 loại kiểu tương tác lấy thông tin thôi, còn muốn change state thì phải dùng provider gắn liền với 1 tài khoản như window.ethereum=> tức là phải dùng front-end của nodejs để làm điều này(or front-end thuần có cdn web3)
+=> Tuy nhiên thật ra, INFURA bản chât là cung 1 node chứ kp 1 tk, nó là 1 node trên mạng luôn và node này có 1 cái url, ta dùng tài khoản của ta connect vào node này để làm mọi thứ => Để backend nodeJS cũng call transaction được, ta có thể dùng hàm signTransaction và sendTransaction có pivkey là được thôi
+
+Giả sử muốn dùng eth-permit đi thì nó là 1 package của NodeJS nên để dùng nó thì buộc dùng front end của NodeJS or backend NodeJS nhưng nó yêu cầu cung provider là người dùng nào đó để nó dùng provider đó tạo transaction cho hàm permit=> nếu dùng backend thì để gọi transaction như v phải thông qua 2 hàm signTransaction và sendTransaction nhưng eth-permit k hỗ trợ như v-> buộc dùng front-end của Nodejs nếu muốn dùng eth-permit có sẵn
+=> ta hiểu bản chất mới có thể biết được phải làm như thế nào. Tương tự trong web3 library có rất nhiều hàm nhưng kp hàm nào ta cũng dùng được ở backend. VD hàm web3.eth.accounts sẽ k trả ra gì cả ở backend vì ta chả có accounts nào cả(trừ khi tự code sinh account).
