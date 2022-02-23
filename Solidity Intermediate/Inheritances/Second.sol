@@ -1,7 +1,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 //C kế thừa từ B và A
-contract A{
+contract A {
     function foo() public virtual pure returns(string memory){
         //chú ý có virtual ở class mẹ
         return "A";
@@ -25,7 +25,7 @@ contract C is B, A{
     //thấy hàm trùng là dùng luôn
 }
 //Thứ tự contract sau is từ trái sang phải bắt buộc phải là từ more based-like sang more derived. Nếu k sẽ báo
-//lỗi. VD: C kết thừa A và B. C is more derived than A và A is more based-like than C. Xong D kế thừa A và C thì
+//lỗi. VD: C kết thừa B và A. C is more derived than A và A is more based-like than C. Xong D kế thừa A và C thì
 //phải dùng là contract D is A, C chứ k đc dùng contract D is C, A 
 //giả sử trong D gọi foo -> tìm trong D k có -> tìm kế thừa từ phải qua -> C gọi lại tìm từ phải qua-> gọi 
 //vào A vì A bên phải của B trong C

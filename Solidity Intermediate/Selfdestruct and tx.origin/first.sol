@@ -9,6 +9,7 @@ contract D {
 
 contract C {
     D d = new D(4); // will be executed as part of C's constructor khi dùng k ở trong bất cứ 1 hàm nào
+    //nhưng điều đb là khai báo instance ở bên ngoài
 
     function createD(uint arg) public {
         D newD = new D(arg);
@@ -26,6 +27,8 @@ contract C {
 
 contract B {
     C a = C(address(0xDA0bab807633f07f013f94DD0E6A4F96F8742B53));//copy địa chỉ contract C vừa được deploy vào đây
+    //Đây là TH 1 contract, ta có thể dùng contract C ở 1 file khác và deploy lấy address còn C ở đây là interface
+    //contract đó cũng tương tự => nch là contract bình thường bản thân nó cũng dùng được như interface
     function returnSender() public view returns (address) {
         return a.returnSender();
     }

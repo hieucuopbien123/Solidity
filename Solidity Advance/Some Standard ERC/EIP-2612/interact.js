@@ -13,7 +13,7 @@ const test = async() => {
     const value = 500000000000000;
     const result = await permit.signERC2612Permit(wallet, tokenAddress, senderAddress, spender, value);
     //hàm signERC2612Permit nhận provider là 1 wallet(gắn liền với account). Có 2 loại provider: 1 là provider của 
-    //hẳn 1 node là API của etherrum blockchain, 2 là provider của 1 wallet gắn với 1 tk thì nó chỉ nhận loại 2
+    //hẳn 1 node là API của ethereum blockchain, 2 là provider của 1 wallet gắn với 1 tk thì nó chỉ nhận loại 2
     //Do đó ta tạo các kiểu provider khác nó éo hoạt động mà tạo provider wallet của ethersJS thì lại hđ ok
     //k thể dùng hdwallet-provider của truffle ở đây vì nó chỉ dùng trong dự án truffle và cấu trúc cx k phù hơp
     //vd window.ethereum của front end mà chạy vào metamask chính là provider wallet đó

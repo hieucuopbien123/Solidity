@@ -1,15 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "./libraries/LibForRouter.sol";
+import "./interfaces/IRouter.sol";
+import "./interfaces/IFactory.sol";
+import "./interfaces/IERC20.sol";
+import "./interfaces/IPair.sol";
+import "./interfaces/IWETH.sol";
+import "./libraries/TokensUltility.sol";
+import "./interfaces/ILPToken.sol";
+import "./libraries/LibForRouter.sol";//quên mất file này r
 
-//ta k dùng Router kể thừa WETH để gọi hàm trực tiếp được. Ở đây ta dùng contract như 1 người dùng và nó k sở hữu WETH
+//ta k dùng Router kế thừa WETH để gọi hàm trực tiếp được. Ở đây ta dùng contract như 1 người dùng và nó k sở hữu WETH
 //nào cả và sẽ chả bh sở hữu. Nó nhận ETH và đổi sang WETH bằng cách gọi hàm của contract đó và gửi cho pair or trader
 //mà thôi
 contract Router is IRouter{
     address factory;//thay vì truyền vào từng hàm ta lưu biến global + interface dùng mọi luc
     address WETH;
-    LibForRouter.Data public data;
+    LibForCounter.data public data;
     event check1(uint amount);
     event checkBalance(string data, uint amount);
     
@@ -17,8 +24,6 @@ contract Router is IRouter{
     constructor(address _factory, address _WETH){
         factory = _factory;
         WETH = _WETH;
-        data.factory = factory;
-        data.WETH = WETH;
     }
     
     //ultility
@@ -182,7 +187,7 @@ contract Router is IRouter{
     
     // path chắc chắn dẫn đúng các pool đã có
     //check hết r. Hàm này swap vào địa chỉ của contract này 1 lượng nhận được sau swap
-    //lúc gọi  hàm này thì path[0] đã được gửi vào 1 lượng amount r
+    //lúc gọi hàm này thì path[0] đã được gửi vào 1 lượng amount r
     function _swap(uint amount, address[] calldata path) internal{
         //check mọi thứ đầy đủ và hợp lệ
         //gửi token cho pair tiếp theo
@@ -191,6 +196,7 @@ contract Router is IRouter{
         uint currentAmount = amount;
         for(uint i = 1; i < path.length - 1; i++){
             address nextPairAddress = IFactory(factory).getAddressOfPairs(path[i], path[i + 1]);
+            //vì trong pair sắp xếp sẵn r nên ta phải xd truyền vào cái nào
             if(path[i - 1] < path[i])
                 currentAmount = IPair(pairAddress).swap(nextPairAddress, currentAmount, 0);
             else
@@ -267,6 +273,9 @@ contract Router is IRouter{
         return currentAmount;
     }
     // trước khi gọi hàm này thì phải approve cho contract sử dụng amountInMax r
+    //thật ra khi user swap như dưới thì front end phải lấy amount và xử lý hiện ra cho người dùng cần deposit vào
+    //bnh r nên chắc chắn bên dưới thỏa mãn. Nhưng khi làm contract này public thì ai cx gọi được nên mặc kệ front-end
+    //có xử lý hay k thì ở đây ta vẫn phải xử lý đầy đủ. Front end nên hiện lệch 1,2 wei để chắc chắn
     function swapTokenForExactToken(uint amountInMax, uint amountOut, address to, address[] calldata path, 
     uint deadline) external override{//v
         require(amountInMax > 0 && amountOut > 0 && to != address(0) && deadline > block.timestamp, "IPARS");

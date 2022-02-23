@@ -15,6 +15,7 @@ contract Third{
     
     function hash(uint _x, string memory _str, address _addr) public pure returns(bytes32) {
         return keccak256(abi.encodePacked(_x, _str, _addr));
+        // encodePacked nhận multi type trả ra bytes. keccake256 nhận bytes và hash fix size nó trả ra bytes32
     }
     
     function avoidCollision(string memory _str1, string memory _str2) public pure returns(bytes32) {

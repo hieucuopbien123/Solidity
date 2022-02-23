@@ -24,7 +24,8 @@ contract Car{
 contract CarFactory{
     Car[] public cars;//Kiểu biến contract cx chỉ là kiểu address thôi(phải là contract trong cùng dự án)
     function create(string memory _model) public {
-        Car car = new Car(_model, address(this));
+        Car car = new Car(_model, address(this));//k cần create2 mà tạo được bằng new nhưng phải embed contract code vào
+        //file này
         cars.push(car);
     }
     function createAndSendEther(string memory _model) public payable{
@@ -36,6 +37,8 @@ contract CarFactory{
 }
 //Từ khóa new là từ khóa tạo ra 1 contract mới tại địa chỉ nào đó. Nếu k có new thì contract phải từng đc tạo ra tại 1 
 //địa chỉ r. 
-//Tức là để dùng 1 contract đã có: <tên contract>(<address contract đó>).<tên hàm muốn gọi>{value: ..., gas:...}(<params>)
+//Tức là để dùng 1 contract đã có: 
+//<tên contract>(<address contract đó>).<tên hàm muốn gọi>{value: ..., gas:...}(<params>) 
+//or <instance contract>.<tên hàm muốn gọi>{value: ..., gas:...}(<params>) 
 //or tạo contract: (new <tên contract>){value:...,gas:...}(<params>)
 //Muốn test contract này phải chuyển lại contract về Car và search contract at address là ptu của cars

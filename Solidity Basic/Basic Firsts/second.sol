@@ -11,7 +11,7 @@ contract Firstcoin{
     //mapping như kiểu bảng băm or từ điển ấy, nó lưu dữ liệu dạng key=>value, chỉ là 1 kiểu 
     //biến mà thôi. Ta dùng nó lưu số dư hiện tại. adress là key, số dư uint là value
     
-    event sent(address from, address to, uint amount);
+    event sent(address indexed from, address to, uint amount);
     
     modifier onlyMinter{
         require(msg.sender == minter, "You are not minter");
@@ -31,7 +31,7 @@ contract Firstcoin{
     }
     function mint(address receiver, uint amount) public onlyMinter{
         //phải thỏa mãn onlyMinter đầu tiên r mới chạy hàm bên trong
-        require(amount < 1e60, "amount excess");
+        require(amount < 1e60, "amount excess");//chơi 1e60 như C++ được, tiện dụng khi muốn có 1 số lớn
         balances[receiver] += amount;
     }
 

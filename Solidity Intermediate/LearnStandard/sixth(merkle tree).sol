@@ -4,7 +4,7 @@ contract Sixth{
     //hàm check 1 trans có nằm trong block hay k: 1 là array of hash, vd có 8 trans cần verify trans
     //thứ 3 thì array này chứa: hash của hash trans 1 và 2, hash của trans 4, hash của hash của hash của
     //trans 5,6,7,8; 2 là merkle root; 3 là leaf là hash của trans cần tính; 4 là index của hash ta sẽ
-    //check vị trí ở đây ta check vị trí số 3 có phải k nên index=3
+    //check vị trí ở đây ta check vị trí số 3 có phải k nên index=2 => tính từ 0
     //Đây chỉ là 1 vd test, còn thực tế, node sẽ lấy thông tin từ 1 fullnode neighbor về hash và merkle
     //root để làm đối số chứ kp ta truyền vào chay như này
     function verify(bytes32[] memory proof, bytes32 root, bytes32 leaf, uint index) 

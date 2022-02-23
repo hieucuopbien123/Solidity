@@ -120,7 +120,7 @@ contract A{
             if slt(x, 0) { x := sub(0, x) }
             if eq(x, 0) { revert(0, 0) }//revert là revert trong solidity và trả ra data từ 0 đén 0+0
             let y := calldataload(1)
-            //mload là lấy giá trị 32 bytes nào, calldataload sẽ trả ra data location chứa tham số truyền vào function
+            //mload là lấy giá trị 32 bytes từ đâu, calldataload sẽ trả ra data location chứa tham số truyền vào function
             //khi biên dịch thì function sẽ có vài arguments truyền vào mặc định
             z := y
         }
@@ -130,15 +130,20 @@ contract A{
                 mstore(0x40, add(pos, length))
             }
             let free_memory_pointer := allocate(64)
+            //nỏ trả ra 128 vì: vào hàm pos sẽ lưu địa chỉ vị trí 64 và giá trị của nó cũng là 64-> sau đó nó cộng 64
+            //thành 128 và mstore là lưu vào storage vị trí 64 thành ra vị trí 64 trở đi 32bytes lưu giá trị 128 và lấy
+            //ra pos là giá trị 64 trở đi 32bytes trả ra số lưu vào free_memory_pointer là thành 128
             z := free_memory_pointer
         }
         //cần phân biệt rõ ràng là ta đang lưu và thao tác với biến hay giá trị. VD: add(1,2) là cộng 2 số
         //nhưng add(địa chỉ, 1) là coi địa chỉ kia là 1 số rồi + với 1 là sang ô địa chỉ tiếp theo. Hay nói cách khác
         //biểu diễn địa chỉ cx chỉ là 1 số như số int bình thường và cộng trừ bth.
+        //VD: add(0x80, 3) = 131 nhưng add(mload(0x80),3) = 3 vì giá trị tại ô 0x80 giả sử đang là 0 ta lấy +3 thì =3
         assembly {
             function f() -> a, b {}//return nhiều biến
             let c, d := f()
-            mstore(0x80, add(mload(0x80), 3))
+            mstore(0x80, add(mload(0x80), 3))//tức là mstore(0x80, 3)
+            let p := mload(0x80)
         }
     }
 }

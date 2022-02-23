@@ -18,7 +18,7 @@ contract Fourth{
     //bất cứ khi nào dùng địa chỉ trong event đều nên dùng indexed, sau này truy cập nó rất dễ với web3
     
     uint public balance;
-    uint public constant MAX_UINT = 2**256 - 1;
+    uint public constant MAX_UINT = 2**256 - 1;//từ khóa constant chỉ nên dùng kiểu như này
     function deposit(uint _amount) public {
         //require kiểm tra điều kiện, k thỏa mãn sẽ fail, undone, trả ra message
         //tránh lỗi overflow, kiểm tra để đảm bảo assert k bị sai
@@ -39,7 +39,8 @@ contract Fourth{
         uint oldBalance = balance;
         if(balance < _amount){
             revert("Underflow");//revert chỉ có 1 đối số và dừng Ct nên dùng trong các câu điều kiện
-            //chỉ dùng revert khi cần check các điều kiện phức tạp k dùng đc require. Ở đây đảm bảo assert kbh bị sai
+            //chỉ dùng revert khi cần check các điều kiện phức tạp if else lồng nhau
+            //k dùng đc require. Ở đây đảm bảo assert kbh bị sai
         }
         balance  -= _amount;
         assert(balance <= oldBalance);

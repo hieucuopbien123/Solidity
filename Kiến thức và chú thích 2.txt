@@ -1,30 +1,54 @@
 Tổng kết lệnh hay:
-enum, hàm push của array, block.timestamp, msg.value, interface + override, wei ether, tx.gasprice, indexed, keccak256(<bytes>), array.length, fallback, gasleft(), address(this).balance, transfer, send, new, library + using for, delegatecalls, super, override(,), virtual, selfdestruct(), error
+//!
+enum, hàm push của array, block.timestamp, msg.value, interface + override, wei ether, tx.gasprice, indexed, keccak256(<bytes>), array.length, fallback, gasleft(), address(this).balance, transfer, send, new, library + using for, delegatecall, super, override(,), virtual, selfdestruct(), error
 
 Phân biệt: 
 require, assert và revert
 mapping và array[]
-abi.encode và abi.encodePacked
+abi.encode và abi.encodePacked và abi.encodeWithSignature k liên quan
 3 cách tạo ra 1 biến struct
 msg.sender và tx.origin
 transfer, call và send
 tạo instance và kế thừa
 revert error và revert string
+2 hàm fallback và receive
+dùng new và create và create2
 
 Probs:
 Dùng modifier để cản recursion của reentrancy hack
 Return nhiều đối số và return function trả ra nh kết quả
-duyệt map, xóa hoàn toàn 1 phần tử trong array
+duyệt mọi phần tử của kiểu mapping, xóa hoàn toàn 1 phần tử trong array
 gửi ether cho bất cứ ai
 gọi hàm của 1 contract khác, contract sinh contract
-update contract
+update contract đã deployed
 contract kế thừa contract khác
+concat string trong solidity
+convert qua lại giữa string, bytes,..
+3 cách khởi tạo 1 biến struct
+
+Note:
+input và output function k được dùng mảng dynamic
+mapping luôn đi với storage nên chỉ dùng trong private function
+không được returns(biến struct) mà buộc lấy từng phần tử
+address phải có payable nếu chuyển tiền cho nó bất cứ lúc nào
+Khi tạo instance contract nên nhớ 1 lỗi địa chỉ truyền vào có thể là của contract khác k được tin tưởng
+
+Library chỉ cần nhớ đúng 3 tính chất:
+internal như là paste thẳng vào contract và phải compile cùng contract, còn external và public thì phải deploy và link vào contract mới dùng được
+dùng lib tránh lỗi out of gas của solidity không cho deploy
+2 cách using for và gọi từng lần
+
+Inheritance 3 ý:
+Khi định nghĩa lại hàm thì cha phải có virtual, con phải có override(các contract muốn override hàm này), k thể override biến
+Hàm gọi từ phải qua sau is khi dùng super.<hàm>(<params>) và chỉ gọi 1 hàm đầu tiên gặp được, nhưng constructor gọi từ trái qua sau is
+Gọi super hàm của 2 contract mà cùng kế thừa từ 1 contract thì sẽ gọi hàm cả 3 contract(nếu 3 contract đó cùng có hàm đó)theo thứ từ A,B,C nếu B và A cùng kế thừa từ C
 
 Sử dụng các thư viện của openzeppelin: npm install @openzeppelin/contracts
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 Lệnh yarn = npm install
+!//
 
 Trang web vanity-eth: cho phép sinh ra address và pivkey của nó, còn tùy chọn được đầu vào
 

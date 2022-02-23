@@ -12,6 +12,9 @@ contract B{
         sender = msg.sender;
         value = msg.value;
     }
+    //Khi dùng delegate call thì msg.sender ở đây là user gọi hàm gọi delegatecall thì biến sender
+    //của contract A sẽ là user => nó kiểu copy code vào contract A ấy
+    //Khi dùng call thì biến sender của contract B được gán là địa chỉ contract A
 }
 //contract B có vai trò như 1 version xử lý các hàm như setVar. Sau này có các version khác chỉ cần đổi địa 
 //chỉ là đc=> các hàm nào trong contract muốn có khả năng upgradable thì phải xác định dùng delegatecall ngay từ
@@ -33,7 +36,7 @@ contract A{
     address public sender;
     uint public value;
     function testDelegateCall(address b, uint _num) public payable{
-        (bool success, bytes memory data) = b.delegatecall(
+        (bool success, bytes memory data) = b.call(
             abi.encodeWithSignature("setVar(uint256)",_num)   
         );
         //dùng call: statevar của B đổi, A k đổi

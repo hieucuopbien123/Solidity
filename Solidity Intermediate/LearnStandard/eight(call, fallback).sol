@@ -54,7 +54,7 @@ contract SendEther{
             abi.encodeWithSignature("doesnotexist()")//abi cho phép truy cập vào smart contract
             //abi.encodeWithSignature trả ra kiểu bytes là đối số truyền vào hàm call để chỉ định gọi hàm gì
         );
-        //đây là cách gọi bất cứ 1 hàm nào bth, nếu thích ta chỉ cần call{}("") cũng tự gọi callback r
+        //đây là cách gọi bất cứ 1 hàm nào bth, nếu thích ta chỉ cần call{}("") cũng tự gọi fallback r
         emit Response(success, data);
     }
     function callFuncExist(address _to) public payable {

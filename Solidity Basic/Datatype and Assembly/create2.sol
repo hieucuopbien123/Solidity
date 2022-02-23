@@ -52,7 +52,8 @@ contract Factory {
         */
         assembly {
             addr := create2(
-                callvalue(), // wei sent with current call
+                callvalue(), // wei sent with current call, lượng wei truyền vào hàm này ta lấy là lượng truyền vào
+                //contract tạo ra
                 // Actual code starts after skipping the first 32 bytes
                 add(bytecode, 0x20),//32 bytes đầu được skip
                 mload(bytecode), // Load the size of code contained in the first 32 bytes

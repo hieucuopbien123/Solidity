@@ -10,6 +10,7 @@ library SafeMath{
 //khi lib chỉ có internal function thì sẽ coi như paste luôn vào contract-> ta k cần deploy lib. Khi đó lib phải được
 //compile cùng với contract
 //lib có external or public-> phải deploy và link vào contract khác thì contract đó mới dùng được lib.
+//điều đặc biệt là hàm trong lib dùng sẽ tránh lỗi gas giới hạn của contract k cho deploy
 
 library Array{
     function remove(uint[] storage arr, uint index) public {//string, mảng, bytes hay mapping khi truyền phải có nơi lưu

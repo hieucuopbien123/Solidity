@@ -37,8 +37,8 @@ Từ đó ta có thể dùng rất nhiều hàm trong solidity thao tác với b
 Phân biệt bytes và bytes32: 
 bytes là kích thước động và bytes32 là kích thước tĩnh. Trong solidity, các biến kích thước tĩnh hay fixed thì khi lưu k cần phải specific nơi lưu trữ nó, tự biết là lưu ở memory or storage(kích thước fixed thì kích thước nó được xác định nên lưu vào k sợ bị tràn bộ nhớ). Còn các biến kích thước động như bytes, array, string, or byte[](chính là array) thì phải nói rõ nơi lưu (vì có thể kích thước quá lớn gây tràn bộ nhớ nên phải specific nơi mà có thể lưu được đủ).
 Ví dụ dùng bytes32 bts = "H"; thì nó sẽ dùng hết 32 bytes để lưu dẫn đến kéo theo hàng đống số 0 đằng sau. Còn dùng bytes bts = "H"; thì bts sẽ tự dùng đủ số bytes để lưu "H" mà thôi.
-=> do đó trong hàm số, Vd ta returns(bytes memory) nhưng chỉ đc returns(bytes32) thôi
-=> Và điều đặc biệt là kích thước tĩnh hay động nó có ảnh hưởng đến việc dùng hàm. VD: động thì dùng được hàm push của array để thêm element vào array, nếu mảng tĩnh thì k dùng được hàm push
+=> do đó trong hàm số, Vd ta returns(bytes memory) thì returns bytes("Hello");
+=> Và điều đặc biệt là kích thước tĩnh hay động nó có ảnh hưởng đến việc dùng hàm. VD: động thì dùng được hàm push của array để thêm element vào array, nếu mảng tĩnh thì k dùng được hàm push mà chỉ có gán
 
 Phân biệt calldata, memory: 
 calldata: chỉ dùng là đầu vào của external function là dynamic size. Dùng calldata thì ta có thể thực hiện cắt cái biến đó với [<from index>:<to index>]. calldata không thể chỉnh sửa như memory. 
@@ -49,6 +49,7 @@ Với bytes: bytes memory bst = new bytes(<số bytes>); => khai báo ô nhớ m
 Với array: int[] memory a = new int[](<số lượng phần tử>); => khai báo 1 mảng int bao nhiêu phần tử và mặc định tất cả các phần tử là 0
 Với string: string memory a = new string(<số lượng phần tử>); => khai báo null string 1 lượng ô nhớ
 => khi khai báo với new thì phải specific số lượng phần tử. Khi dùng với string thì khai báo 10 phần tử nhưng dùng 100 phần tử cx đc, nhưng dùng với array thì chỉ đc dùng trong phạm vi đã khai báo vì string nó mặc định là phần tử luôn động còn array thì ta có thể quyết định nó động hay tĩnh.
-VD: khai báo array với new trong 1 function thì array đó k dùng được hàm push. Nhưng khai báo k dùng new thì lại đc vì nó động
+VD: khai báo array với new trong 1 function thì array đó k dùng được hàm push. Nhưng khai báo k dùng new thì lại đc vì nó động. 
+Lưu ý là trong 1 hàm số, khai báo array động cũng sẽ thành tĩnh nhưng nó hiểu v chứ k báo nên k dùng được push
 
 Chú ý: 1 bytes bằng 2 con số bắt đầu tính sau dấu x. VD gặp 1 hàm số nhận vào kiểu bytes4 thì ta phải truyền đủ là "0x12345678" nếu k đủ các số thì sẽ revert lỗi INVALID_ARGUMENTS

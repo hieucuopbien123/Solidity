@@ -24,7 +24,7 @@ contract Game {
         players.push(Player(msg.sender, fullName, Level.Intermediate, age, gender, block.timestamp));
         playersMap[msg.sender] = Player(msg.sender,fullName,Level.Intermediate, age, gender, block.timestamp);
         //block truy cập thông tin block hiện tại nó thêm vào
-        countPlayer++;
+        countPlayer++;//cần gì, lấy length của mảng Player là được
     }
     
     uint public countPlayer = 0;
@@ -44,6 +44,7 @@ contract Game {
         Player storage player = playersMap[playerAddress];
         //nếu muôn lưu thành biến mà có sự thay đổi từ struct, array, mapping thì phải cho datalocation như này
         //đa phần chỉ có khởi tạo là không cần còn mọi lúc khác đều phải dùng data location như này
+        //dùng là storage => truy cập địa chỉ biến đó; dùng là memory => copy nên đổi sẽ k đổi biến gốc trong storage
         if(block.timestamp >= player.createdTime + 15){
             player.myLevel = Level.Advanced;
         }

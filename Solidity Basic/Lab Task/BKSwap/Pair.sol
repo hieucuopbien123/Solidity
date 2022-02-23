@@ -71,6 +71,8 @@ contract Pair is IPair, LPToken{
     }
     //khi gọi addLiquidity là addingAmount1, addingAmount2 đã sắp xếp đúng thứ tự, đã gửi token vào pair này r
     //địa chỉ to cx hợp lệ r, 2 lượng tiền check hợp lệ hết r
+    //Dùng external tức là 1 thg khác cx có thể vào và addLiquidity cho nó thì addingAmount sẽ =0 thì addingRate 
+    //có phép chia mẫu số là 0 sẽ báo error
     function addLiquidity(address to) external override returns(uint){
         if(feeParams != 0){
             mintFeeForDev();
@@ -111,6 +113,7 @@ contract Pair is IPair, LPToken{
         require(reserve1 > 0 && reserve2 > 0, "POOL EMPTY");
         require(reserve1 + amount1 == IERC20(token1).balanceOf(address(this)) && 
                 reserve2 + amount2 == IERC20(token2).balanceOf(address(this)), "SEND TOKEN TO ME FIRST");
+        //vì hàm này ai cũng gọi được nên đk check bên trên sẽ xử lý user phải truyền token vào cho nó
         uint sendAmount2 = reserve2 - reserve1*reserve2*1000/(reserve1*1000 + amount1*997);
         uint sendAmount1;
         if(sendAmount2 <= 0){
@@ -122,8 +125,7 @@ contract Pair is IPair, LPToken{
         reserve2 = IERC20(token2).balanceOf(address(this));
         emit check(amount1, amount2);
         emit check(sendAmount1, sendAmount2);
-        return sendAmount2 <= 0 ? sendAmount1 : sendAmount2;
-        // return (sendAmount1, sendAmount2);
+        return sendAmount2 <= 0 ? sendAmount1 : sendAmount2;//trả ra khoản tiền nhận được
     }
     //để bảo contract này gửi token cho ta từ 1 hàm của chính nó. Ta k thể dùng transferFrom hay
     //transfer được vì 1 cái đòi approve, 1 cái gửi từ msg.sender => cái ta cần là gửi từ contract
@@ -135,6 +137,7 @@ contract Pair is IPair, LPToken{
         );
         require(success, "FAIL TRANSFER");
     }
+    //2 hàm dưới nên là kbh bị gọi nếu mọi thứ ta xử lý đều chuẩn
     function skim(address to) external {
         address _token1 = token1; 
         address _token2 = token2;

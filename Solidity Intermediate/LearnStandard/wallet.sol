@@ -6,7 +6,7 @@ pragma solidity >=0.7.0 <0.9.0;
 //1 cái ví có các chức năng: nhận ether từ người khác, tiêu số ether đó, gửi nó cho người khác
 //A deploy ứng dụng và là chủ ví(khi người dùng tải ứng dụng về, họ sẽ deploy ứng dụng lên blockchain)
 //Những người khác sẽ gửi tiền cho A bằng hàm deposit, A sẽ tiêu bằng cách rút tiền or dùng gửi cho người khác.
-//Phân biệt: wallet smart contract này là 1 loại wallet, mọi người gửi vào địa chỉ contrac. Người dùng rút ra 
+//Phân biệt: wallet smart contract này là 1 loại wallet, mọi người gửi vào địa chỉ contract. Người dùng rút ra 
 //tiền về ví của mình,hay wallet tài khoản của người dùng, khác với wallet này=>chớ nhầm ví này với tiền
 //trong account 
 contract Wallet{
@@ -20,8 +20,8 @@ contract Wallet{
         //lấy đc địa chỉ contract, mọi địa chỉ đều có balance có thể truy cập vào
     }//1 hàm số payable mặc định sẽ là 1 hàm gửi tiền vào địa chỉ contract, khi set value ether cho địa chỉ nào 
     //đó và thực hiện giao dịch là hàm payable mặc định sẽ là gửi vào địa chỉ contract đó.
-    //1 hàm k có payable sẽ k thể gửi nhận ether, 1 địa chỉ user account k có payable cx k gửi nhận ether đc
-    //kể cả constructor cx tuân theo nguyên tắc này, có payable thì có thể send ether vào contract khi deploy
+    //1 hàm k có payable sẽ k thể nhận ether, 1 địa chỉ user account k có payable cx k nhận ether đc
+    //kể cả constructor cx tuân theo nguyên tắc này, có payable thì có thể send ether vào contract sau khi deploy
     
     address payable public owner;
     constructor() payable{

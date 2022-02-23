@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8;
 
-import "./IERC20.sol";
+import "./interfaces/IERC20.sol";
 
 contract TestTokenForBKSwap is IERC20 {
     string _name = "Test";

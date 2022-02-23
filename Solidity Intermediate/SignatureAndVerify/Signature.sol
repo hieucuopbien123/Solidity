@@ -63,7 +63,7 @@ contract VerifySignature{
 //ký và in ra giá trị signature đã được hash-> truyền vào hàm verify để check signer chuẩn k
 //metamask k hỗ trợ web3 để sign message nx nên k đc dùng
 
-//người dùng: nhận messageHash-> ký message bằng pivkey-> trả ra signature
+//người dùng: nhận messageHash-> ký message bằng pivkey -> trả ra signature
 //người khác: nhận messageHash, nhận signature-> tính ra pubkey(address) của người đã ký transaction
 //Pivkey là 1 thứ có thể mã hóa thông tin thành 1 đoạn mã mà từ đoạn mã đó có thể truy ngược lại pubkey cặp đôi với pivkey
 //đó. Cơ chế của pivkey hay pubkey chỉ là thuật toán mã hóa mà thôi

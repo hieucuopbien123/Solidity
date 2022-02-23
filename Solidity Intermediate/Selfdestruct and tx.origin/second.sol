@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.7.0 <0.9.0;
+
 contract A {
     //1 fallback function ở phiên bản hiện tại bắt buộc phải có từ khóa payable. Nếu 1 contract mà k có hàm có payable
     //or fallback k có payable thì sẽ k nhận được tiền. Fallback là hàm tự gọi khi gọi hàm k tồn tại hoặc khi nhận ether
@@ -34,7 +35,7 @@ contract EtherGame {
     function deposit() public payable {
         require(msg.value == 1 ether, "You can only send 1 Ether");
 
-        // balance += msg.value;//đã fix
+        // balance += msg.value;//đã fix->balance thành lượng ether gửi bằng hàm này chứ kp lượng ether tổng số dư nx
         balance = address(this).balance;//code cũ có lỗi
         //trông rất bình thường nhưng lại có lỗi 
         require(balance <= targetAmount, "Game is over");

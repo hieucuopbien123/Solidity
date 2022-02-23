@@ -29,7 +29,7 @@ contract First{
         return 1 ether == 1e18 wei;
     }
     function testGasRefund() public view returns (uint){
-        return tx.gasprice;
+        return tx.gasprice;//gasprice*(số lượng gas sử dụng) = totalgas
     }
     
     //k chạy hàm này nếu k sẽ toang Ct. GT của i sẽ về lại 0 nhưng vẫn ngốn gas vì invalid
@@ -40,8 +40,8 @@ contract First{
         }
     }
     
-    //các quy tắc giới hạn cho pub function
-    // function mappingInput(mapping(uint=>uint) memory mapVar) public{ }
+    //các quy tắc giới hạn cho pub function: array và mapping
+    // function mappingInput(mapping(uint=>uint) memory mapVar) public{ }//mapping luôn là storage mọi TH
     //chú ý là private luôn là storage nhưng public thì có thể là storage or memory
     function muldimensionalArrDynamicSize(uint[9][9] memory _arr) public { }
     function mappingInput(mapping(uint=>uint) storage mapVar) private{ }
@@ -82,7 +82,7 @@ contract First{
         return (a, b, c, x, y);
     }
 
-    //trong solidity để concat string thì
+    //trong solidity để concat string thì phải làm như này sẽ save gas
     function concat() public returns(string memory){
         text = string(abi.encodePacked(text, " WOrld"));//phải gọi string sẽ tạo ra biến string copy convert sang
         return text;

@@ -6,7 +6,7 @@ contract Test{
     //khai báo bth với string
     bytes public exampleBytes = '0xabcd';
     bytes32 public bytes32Var = "Hello World";
-    //khai báo theo kiểu bytes, k dùng được với bytes mà chỉ dùng đc với bytes1
+    //khai báo theo kiểu bytes, k dùng được với bytes mà chỉ dùng đc với bytes1,... tĩnh
     bytes1 public bytes1Var = 0x20;
     
     //láy giá trị
@@ -59,6 +59,7 @@ contract Test{
     }
     
     //convert bytes32 to string: bytes32 -> bytes -> string. C1: assembly, C2: gán như dưới
+    //sao k dùng luôn abi.encodePacked(..); cho nhanh
     function bytes32ToString(bytes32 _bytes32) public pure returns (string memory) {
         uint8 i = 0;
         while(i < 32 && _bytes32[i] != 0) {
@@ -76,6 +77,7 @@ contract Test{
     //convert bytes to uint cx chỉ là convert từng bytes 1
     function bytesToUint(bytes memory b) public view returns (uint){
         uint number;//bytes[i] là kiểu bytes1
+
         for(uint i = 0; i < b.length; i++){
             number = number + uint(uint8(b[i]))*(2**(8*(b.length-(i+1))));
         }

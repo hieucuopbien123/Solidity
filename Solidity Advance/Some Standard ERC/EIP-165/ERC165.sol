@@ -81,4 +81,3 @@ contract MyContract is MyERC165, InterfaceForContract{
 
 //Ta cx có thể check interface mà k dùng hàm type() bằng cách tính chay như cách đầu tiên, ở constructor: 
 //_interfaceId[<bytes4 keccak256 signature từng hàm cách nhau bằng ^>] = true;
- 

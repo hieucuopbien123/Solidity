@@ -54,14 +54,14 @@ Cơ chế về fee:
 Chỉ tính lượng fee 0.01% mỗi lần được add từ lần thứ 2 or burn. 
 Ta tính lượng fee cả khi add bắt đầu từ lần thứ 2 trở đi: Tại sao? Chú ý add lần thứ 2 trở đi tức là add vào cái pool này tổng thể chứ kp mỗi người. Add lần thứ nhất có tính cx chả ra gì vì chưa có fee gì cả. Add từ lần thứ 2 ta tính lãi. Nên nhớ mỗi lần sinh LP token, toàn bộ tiền trong pool mà mỗi người sở hữu sẽ giảm đi 0.01% -> nếu 1 người mới thêm vào họ sẽ bị lỗ khoản fee này nếu chưa có ai burn or add kể từ sau lần swap cuối cùng. Nên trước khi họ add, ta gọi mintFee để họ kp chịu lỗ gì cả
 Nhà phát triển chính ra cũng đóng góp vào pool 1 lượng tương đương với lượng LP token kia chứ kp là k đâu. Sự khác biệt khi ta thực hiện lấy 0.01% fee ở mọi lúc so với lấy 0.01% fee chỉ khi mint or burn: Lượng LP token tượng trưng cho tỉ lệ share đang sở hữu trong pool ở cả 2 loại token. Mỗi khi có người swap thì lãi pool có thêm 0.3% về giá trị so với ban đầu. Còn sinh LP token mới cho nhà phát triển là mất đi 0.01% ở mỗi người khác. Nếu nhà phát triển đóng góp vào 1 phần trong pool thì mỗi khi có người swap, lượng tiền mà nhà phát triển sẽ tăng lên theo lãi kép còn gì. Vì 1 người burn chẳng hạn và họ sở hữu 0.05% lượng vừa thêm. Xong lại 1 người swap thì giá trị pool tăng lên, họ sẽ ăn thêm 0.3% của 0.01% và cứ như v. Do đó nếu swap là lấy luôn thì họ sẽ lãi nhiều hơn vì sinh ra LP token nhanh hơn và lãi cứ tăng nhanh hơn. Còn mỗi lần add, burn thì mới thêm dù vẫn ăn 0.01% nhưng k có lãi kép. Tuy nhiên vì khoản fee quá nhỏ nên k đáng kể để ta làm mỗi lần swap vì phải bù cho phí giao dịch nx
-Mỗi lần add là thêm 1 lượng LP token. Mỗi lần swap thì thay đổi tỉ lệ token và lượng LP token k đổi, vẫn tưng đó rút hết tất cả. Mỗi khi add or burn thì check sự chênh lệch căn k1 và căn k2 để biết có lần swap thêm 0.3% nào k. Nếu có thì tính LP fee để ăn được 0.05% token hiện tại
+Mỗi lần add là thêm 1 lượng LP token. Mỗi lần swap thì thay đổi tỉ lệ token và lượng LP token k đổi, vẫn tưng đó rút hết tất cả. Mỗi khi add or burn thì check sự chênh lệch căn k1 và căn k2 để biết có lần swap thêm 0.3% nào k. Nếu có thì tính LP fee để ăn được 0.01% token hiện tại
 
 Cơ chế chi tiết đã gộp hàm, 1 sàn dex giản lược đi rất nhiều:
 Router: constructor nhận địa chỉ factory cố định và đồng WETH riêng; addLiquidity; addLiquidity có ETH; removeLiquidity, removeLiquidity có ETH; swap exact token for token; swap token for exact token; swap exact ETH for token; swap ETH for exact Token; swap token for exact ETH; swap exact token for ETH 
 Factory: constructor nhận địa chỉ lấy fee; createPair;
 Pair: constructor xác định token luôn, gán biến factory luôn(để mỗi lần gọi hàm của factory kp thông qua interface nx); đào fee; add; remove; swap; skim; sync; update;
 
-=> khi 1 contract thg hay phải gọi 1 hàm 1 contract khác. Nếu có thể hãy cho nó lưu thành 1 biến luôn để gọi thg xuyên(2 contract gắn với nhau là duy nhất và chỉ có 1), để ta truyền vào interface gọi trực tiếp hay gọi instance trực tiếp
+=> khi 1 contract thg hay phải gọi 1 hàm 1 contract khác. Nếu có thể hãy cho nó lưu thành 1 biến luôn để gọi thg xuyên(2 contract gắn với nhau là duy nhất và chỉ có 1 chứ kp gọi hàm của same code khác address), để ta truyền vào interface gọi trực tiếp hay gọi instance trực tiếp
 
 rất nhiều utility khác
 
@@ -70,7 +70,6 @@ dùng approve r gọi transferFrom or dùng luôn transfer thì cách 1 giúp ta
 Fix các lỗi: reentrancy hack, hàm public bị hacker gọi fake tham số, silience warning, tối ưu gas,..
 
 Hỗ trợ bổ sung: fee-on-transfer token, dùng permit để remove, flash swap,
-
 
 Tìm hiểu sự khác biệt: ta dùng hàm transfer gọi nhiều lần thì chuyện gì xảy ra? Transaction có được hoàn tác khi chỉ 1 cái cuối k thỏa mãn không=> k. Transaction có độc lập để chờ xác nhận tách rời nhau hay k-> tức là thời gian chờ có bị cộng dồn k=>k. Số dư có được cập nhập ngay khi transaction hoàn thành nhưng transaction cuối chưa hoàn thành k->có. Nếu có thì 2 transaction thực hiện lâu bị conflict thì sao. K bị conflict vì tức thời, số dư chỉ cập nhập lâu trong 1 hàm, khi có phát là tức thời
 
@@ -93,3 +92,25 @@ Về oracle: công cụ giúp contract lấy thông tin từ bên ngoài or rộ
 Chainlink là 1 mạng lưới oracle phi tập trung, trung gian giữa contract và data bên ngoài. Mỗi lần dùng chainlink là phải mất 1 lượng token LINK. VD khi cần lấy tỉ giá của các đồng coin hiện tại
 Trong BKSwap ta có thể tự implement vc lấy tỉ giá các đồng coin, dùng sàn của ta như 1 oracle được luôn bằng cách cho thêm 1 hàm public cung tỉ giá của 1 pair. Vì các sàn dex như này tỉ giá thg gần đúng với bên ngoài do bọn kinh doanh chênh giá. Ta deploy 1 contract mới lấy giá trị tỉ giá là được oracle kiểu truyền vào token và amount-> lấy ra bằng bao nhiêu ETH tương ứng
 
+Tổng kết dự án này:
+Factory:
+- tạo cặp pair mới: Đơn giản gọi new Pair(token1, token2) đã sắp xếp thứ tự 2 token
+- lấy address cặp pair bất kỳ biết address 2 token: ta lưu vào 1 address=>mapping(address=>uint) và uint trong đó là index của Pair[]. Ta lưu như v vì ta muốn lấy số lượng bao nhiêu pair thì bằng length của Pair[]
+- xác định địa chỉ nhận fee: truyền vào luôn ở constructor
+Pair:
+- đào fee cho dev mỗi khi add và burn: hàm này so sánh tích 2 lượng token và feeparams để xem kể từ lần cuối cập nhập có ai gửi thêm token gì vào k -> đào thêm LP token gửi vào dev address thôi. Hàm được gọi trước khi gọi add và remove
+- addLiquidity: chỉ là xem tỉ lệ lượng sau khi thêm vào và lượng ban đầu chênh nhau bao nhiêu thì mint thêm LPToken gửi cho user thôi. Phải check xem lượng token1 và 2 thêm vào tỉ lệ ntn so với tỉ lệ hiện tại và LPToken sinh ra sẽ theo token nào cung số lượng nhỏ hơn. 
+- removeLiquidity: check lượng LPToken nhận được thêm. Ưu tiên check bằng balance hơn là truyền tham số cho hàm trong khi có thể lấy được ngay từ balance. Lấy tỉ lệ token1 và token2 trong pool gửi cho user và burn lượng LPToken. Update lại reserve và feeParams
+- swap: tính lượng token nhận được và tính ra phần token còn lại gửi đi cho user. Phần token gửi đi bị giảm 0.3% r mới gửi đi. R update balance
+- skim và sync: cân bằng reserve or rút bớt token thừa 
+Router:
+- addLiquidity: người dùng phải ủy quyền cho contract dùng 1 lượng token r mới gọi hàm-> contract transfer vào địa chỉ cặp pair để gọi addLiquidity của pair để nó gửi lại LPToken cho user. Nếu có ETH phải đổi sang WETH r thao tác
+- removeLiquidity: ủy quyền cho contract dùng lượng LPToken-> contract gửi vào địa chỉ cặp pair r gọi removeLiquidity của Pair thì pair sẽ gửi lại user token tương ứng. Nếu có ETH thì cho Pair gửi lại contract này và xử lý đổi từ WETH sang ETH r gửi lại cho user
+- swapExactTokenForToken: người dùng ủy quyền cho contract dùng 1 lượng token-> contract gửi nó theo đường path và gửi đến cuối-> lấy lượng ở cuối ra gửi cho người dùng
+- swapTokenForExactToken: tính ngược lại lượng token cần cho vào để có lượng token đích-> r so sánh xem user ok k -> nếu được thì chơi. Nếu có ETH phải cho sang WETH và xử lý
+Oracle: lấy lượng ETH còn lại bằng bao nhiêu lượng token truyền vào
+LPToken: ERC20 bình thường nhưng có thêm permit
+WETH: ERC20 bình thường nhưng có thể swapToWETH và swapToETH
+
+Quy trình chung tạo SC:
+Lập sơ đồ kỹ càng comment-> code theo comment-> check lại bằng remix xem chuẩn những gì ta muốn chưa-> chống các thể loại hack như reentrancy,..-> chỉnh sửa các visibility là public hay internal, các hàm external hay public thì chú ý ai cx gọi được thì có vấn đề gì k-> bỏ tất cả warning cho contract -> tối ưu gas, số lượng biến,..

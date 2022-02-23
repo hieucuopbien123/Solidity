@@ -31,11 +31,13 @@ contract Caller{
         //địa chỉ thì hàm k tồn tại sẽ báo lỗi, như v ta sẽ biết luôn, chứ dùng call thì phải deploy contract xong
         //gọi mới biết là hàm k tồn tại, lúc đó k sửa đc nx r
         //Do đó cách này k dùng gọi fallback mà phải call mới gọi đc fallback
+        //VD ở trên mà contract tên Callee k có hàm PayableFunction thì sẽ báo lỗi
     }
 }
 
 //nếu có 1 contract khác trong file có hàm tên giống như contract cần gọi thì khi truyền địa chỉ của nó, nó sẽ gọi hàm đó
-//bất kể ta đặt khác tên =>ta k nên tin tưởng bất cứ 1 hàm nào mà ta k sở hữu vì có thể gọi ra kết quả k mong muôn
+//bất kể ta đặt khác tên contract=>ta k nên tin tưởng bất cứ 1 hàm nào mà ta k sở hữu vì có thể gọi ra kết quả k mong muôn
+//nó ưu tiên gọi theo địa chỉ truyền vào chứ tên contract qtr gì
 contract Foo{
     uint public x;
     function NormalFunction(uint _x) public returns(uint){
