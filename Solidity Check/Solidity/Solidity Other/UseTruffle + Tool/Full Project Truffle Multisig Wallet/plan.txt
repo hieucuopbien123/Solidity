@@ -1,0 +1,104 @@
+Plan: contract solidity; tool truffle để deploy, compile; tạo và deploy lên local blockchain của truffle; deploy lên ropsten network; metamask kết nối với ropsten network; tạo ứng dụng front-end tương tác với contract trên ropsten network bằng thư viện web3 với typescript, hiển thị với react; 
+
+Dự kiến: 
+React có Context, bên trong có component App xử lý việc hiển thị, component Update xử lý vc đổi dữ liệu. VD thay đổi gì trong App như chuyển đổi tài khoản trong ví metamask thì component Update sẽ bắt và update lại trong component App dữ liệu của account khác. VD: React có nút bấm có các hàm, người dùng dùng 1 account send tx vào blockchain và khi nó đc mine, Update component của react sẽ bắt và data hiển thị trong App thay đổi. Vì data trong app phải luôn đổi theo state của contract
+
+front-end:
+npm install create-react-app
+create-react-app <tên app> template --typescript => tạo app react bằng typescript, k còn js mà chỉ có ts or tsx
+vào trong thư mục của react:
+npm install semantic-ui-react semantic-ui-css=> vài package làm ui đẹp hơn, nó kiểu material ui đó
+npm install web3 @truffle/contract bn.js => 2 package giúp tương tác với contract, bn.js giúp JS xử lý bignumber vì 1 đồng token 10^18 k JS k thể handle đc
+
+dự án truffle bên cạnh frontend chứa contract multisig: chạy truffle develop để tạo local blockchain-> migrate để deploy-> lấy abi và address
+=> mỗi lần reset blockchain là phải copy lại để lấy lại abi các hàm(nếu đổi hàm) và address(nếu deploy lại vào address khác)
+Phải liên kết lại metamask nx nếu account của nó trong truffle develop ta dùng bị khác, kể cả k thì ta cx phải reset lại account trong metamask nếu nó là account đã có trong blockchain cũ. NN là vì mỗi lần tạo transaction ở account trong 1 blockchain thì nó sẽ tăng số nonces của account đó lên và đồng bộ nó với nonce account trong blockchain. Mỗi lần reset blockchain thì số nonce của account bị reset về 0 trong blockchain còn của metamask thì vẫn v nên k đồng bộ nhau và k dùng account đó trong metamask để thao tác với transaction trong blockchain mới được=> còn trong các mạng như ropsten hay rinkeby ta tắt đi bật lên k cần reset vì blockchain testnet k bị reset thg xuyên như local blockchain. Phải luôn để account trong 1 blockchain luôn đồng bộ với account trong app ví của ta nhé or nó coi là đang thao tác với 2 blockchain khác nhau chỉ là bị trùng tài khoản nên bị lỗi tài khoản này ở blockchain khác bị trùng với blockchain này là vô lý k chay
+
+vào thư mục frontend: cp -r <link thư mục build của truffle project> <link thư mục src của front end chẳng hạn> => thế là lấy được abi và address
+
+Viết front-end: 
+import "sematic-ui-css/sematic.min.css"; => ở trong index.js
+
+Bố cục component React front-end k hề đơn giản: 
+Xét tính năng hiển thị thông tin tài khoản và dữ liệu của blockchain mà tài khoản này có:
+Trực quan: người dùng bấm nút thì kết nối vào metamask, account của người dùng hiển thị trên trang web; Nếu người dùng chưa làm gì cả thì mặc định account là 0x00; Nếu người dùng bấm nút nhưng chưa đăng nhập tài khoản mà tắt metamask đi thì vẫn hiển thị 0x00; Nếu đang ở tk này, người dùng chuyển sang tk khác thì hiển thị tk mới của người dùng lên trang web;
+Thứ ta cần: ta muốn app của ta sẽ thao tác dựa trên account người dùng. Để làm được tối thiểu những thứ trên, react app trống vốn k có gì và ta phải nhét tât cả dữ liệu vào react để nó chỉ việc hiển thị ra thôi. Các dữ liệu cần cung cho react front end là: abi, address của contract là template chứa các hàm của contract để gọi hàm, web3 là biến chứa provider metamask của người dùng để gọi hàm, public account của người dùng để hiển thị => hết
+trong đó web3 là biến cố định nhận duy nhất 1 lần từ user lần đầu kết nối để dùng và vói giao diện thì luôn là window.ethereum
+abi và address contract cx là biến cố định mặc định lúc nào cx có
+account người dùng là biến động người dùng có thể chuyển bất cứ lúc nào theo quy trình như phần trực quan
+=> abi và address contract tự động lúc nào cx có
+=> web3 thì khi người dùng mới truy cập lần đầu tiên ta yêu cầu họ connect
+=> account thì ta sẽ bắt liên tục sau mỗi 1s khi người dùng đổi account
+Phạm vi sử dụng của tất cả các biến đó là global hết=> thế thì abi và address contract ta lưu fix file json, còn account và web3 ta dùng redux hoặc ở đây ta dùng Context global để mọi component đều dùng đc. Còn việc đổi account ta dùng luôn reducer hook của reactJS. Tức là ta muốn account là 1 biến trong context để mọi component sử dụng, ta lại muốn nó là 1 state của 1 component khác và component đó gọi useReducer và có hàm update để dispatch cái action=> Khi account vừa là state vừa trong context thì mọi component đều dùng được và gọi hàm để update được nó.
+=> Nhưng rõ ràng k thể vì đã là context làm sao là 1 state của 1 component khác được. Đơn giản ta kết hợp nó lại bằng cách: cho 1 component Provider làm component cha của mọi component và component đó dùng context nhưng context này k fix mà giá trị là do component Provider truyền cho, nó cx truyền cả hàm update vào context để mọi component con của nó đều dùng được
+
+Context trong react có 2 cách dùng: 
+C1 k dùng hook: ta đơn giản createContext gán <component>.contextType = Context=> thế là class component dùng được thông qua this.context.<biến>
+C2 dùng hook: ta tạo context và tạo 1 component cha bao mọi component cần dùng context r ta cung vào các con của nó bao bởi 1 <context>.Provider và r bên trong các component con, ta gọi hook useContext để dùng cái gì trong context thì lấy
+
+Quy trình lấy biến: 
+Tạo reducer lấy ra state bên trong chứa 2 biến global mà ta muốn dùng cho tất cả đó là web3 và account hiện tại-> Tạo Provider làm cha của tất cả components-> bên trong Provider dùng useReducer để lấy web3 và account đó-> tạo ra các hàm thay đổi với các biến thì ở đây có mỗi UpdateAccount mà thôi, hàm này sẽ dispatch action để hiện thị account mới-> provider có tất cả nhưng không dùng gì hết mà dùng Context truyền hết cho con
+=> Đến đây thì các con đều dùng được biến web3 và account hiện tại như ý r, nhưng dữ liệu chưa có, web3 và account chưa lấy từ nguồn nào hết, cũng chưa xử lý khi người dùng đổi thì bắt. Ở đây thể hiện rằng, nếu có dữ liệu thì nó sẽ lấy được như này và nếu dữ liệu update, nó sẽ update được như này, còn làm sao để lấy và update:
+Trong App, ta gọi hàm async window.ethereum để trả ra biến web3 và ta ngay lập tức update nó cho store xử lý bởi reducer, xong
+Quy trình update account: người dùng đổi-> bắt nó -> gọi updateAccount
+tạo ra 1 hàm subscribeToAccount chạy 1s 1 lần để bắt sự thay đổi của account. Hàm này sẽ gửi lại cái account hiện tại đang kết nối. Giả sử đang ở account A, sau đó ta chuyển sang account B thì account hiện tại đang là account A, hàm subscribe sẽ gửi account tới và nó check nếu account hiện tại khác account mới=> update account mới thì ở đây ta chưa xử lý mà mới reload lại page-> gọi hàm này ở trong App mặc định luôn, nhưng do gọi trong App nó k hay nên tách mẹ ra 1 component riêng chỉ có nhiệm vụ gọi hàm này
+
+Quy trình chạy:
+đầu tiên khởi động app-> render lần đầu tiên, reducer khởi tạo giá trị mặc định cho web3 là null và account là 0x00 để app hiển thị, reducer này là của Provider cung cho mọi component. Component Updater được render chả ra gì cả mà nó chạy cái hàm bên trong, lúc này web3 = null nên nó chả làm gì cả
+ấn connect vào ví nhưng chưa nhập mk, chưa kết nối-> App gọi vào hàm bấm connect và gán loading = true và hiện thị ra loading. Lúc này hàm ấn chuột đó gọi vào hàm có window.ethereum để pop up metamask chưa làm gì cả và hàm này là hàm async
+gõ mk và lấy account số 0-> hàm async kết thúc, loading bằng false hiển thị bình thường, gọi để reducer update state account mới là mọi thứ tự cập nhập. Lúc này state account và web3 bị đổi, Updater dùng useEffect gọi lại hàm sẽ thành gọi hàm setInterval liên tục và nó bắt đầu check mỗi giây 1 lần xem account trong metamask có bằng với account hiện tại k
+người dùng đổi sang account khác-> setInterval bắt được-> nó check khác account trong state của react lập tức reload lại page
+Tắt Ct-> các component lần lượt bị xóa-> khi Updater bị xóa, các useEffect của nó cx bị xóa theo làm cho interval dừng lại, còn mọi thứ khác vẫn bị xóa như bth
+
+Problem solved: lấy web3 và account hiện tại của người dùng nhét vào trong app và bắt được vc người dùng chuyển sang account khác
+
+Xử lý tính năng của contract: 
+user1 gửi vào contract 1 lượng tiền-> hiển thị thông tin contract có thêm 1 lượng tiền-> user1 tạo ra 1 transaction gửi lượng tiền đó cho user2-> transaction đó liền hiển thị mọi thông tin trên giao diện-> user 1 xác nhận transaction bằng vc ấn nút-> thông tin số người đã Confirm tăng lên 1, đồng thời hiện thị là đã xác nhận-> người dùng chuyển account sang user2-> màn hình update lại thông tin mọi thứ rằng user2 chưa xác nhận-> user2 xác nhận, màn hình liền hiển thị nút execute-> người dùng chuyển sang bất cứ account nào thì nút executed vẫn còn đó-> 1 người nào đó execute-> transaction được thực thi, số dư cập nhập, cập nhập mọi thông tin executed, các nút bấm biến mất
+
+Ở bài học này, ta cần làm chủ 2 cơ chế:
+1) ấn nút-> thực hiện transaction-> cập nhập lại data
+2) các thông tin thay đổi không phải thông qua việc bấm nút-> subscribe nó liên tục sau mỗi 1s-> hiện thị sự thay đổi
+
+Bên cạnh đó còn có: dùng async để tạo loading, cung biến global thông qua Provider=> nên dùng redux
+
+Phân tích các TH:
+TH1: ấn nút connect vào metamask
+ấn nút thì nó thực hiện và trả ra sự thay đổi ngay nên: ấn nút-> gọi hàm call để liên kết với ví của ta-> tạo loading-> khi hoàn thành lấy ra biến và update luôn lên giao diện qua reducer
+TH2: deposit vào contract 1 lượng tiền(k refresh)
+ấn nút thì thực hiện nhưng k hiển thị được balance của contract ngay nên: ấn nút-> gọi hàm call gọi đến hàm deposit trong contract thông qua web3 đó-> hiển thị loading để người dùng ký transaction-> ký xong là hết
+để tự động bắt-> trong contract của ta phải có hàm phát ra event khi thực hiện deposit-> dùng web3 subscribe event, nếu event xuất hiện-> lỗi thì show, k lỗi thì gọi hàm chạy vào reducer update cái balance
+TH3: đổi account hiện tại
+người dùng tự đổi account hiện tại thì cái này chúng ta k thể kiểm soát được như 2 Th trên vì người dùng có thể đổi bất cứ lúc nào-> ta bắt từng giây 1 bằng cách sau 1s là check account hiện tại của metamask có bằng với account trong app của ta k-> nếu bằng thì bỏ qua, k thì reload lại trang sẽ k có connect gì cả và người dùng phải connect lại với account mói
+
+Cơ chế ta có thể hiểu được việc khi ấn nút thì đổi account nhưng làm sao khi người dùng đổi account thì mọi thứ được cập nhập ngay lập tức theo account mới mà k reload lại trang. NN rất đơn giản là vì context, ta muốn web3, netId, account khi đổi thì mọi thứ phải cập nhập-> mọi component dùng đến dữ liệu 3 biến đó phải thay đổi theo cái mới nhất. Để nó render lại thì bắt buộc phải dùng hook rồi-> nhét 3 cái đó vào trong context-> cho component dùng context đó -> khi người dùng đổi account ta bắt và cập nhập account mới-> xong cho reducer bắt và Provider dùng reducer đổi state sẽ render lại-> Provider Context của component Provider nhận giá trị mới-> context có giá trị thay đổi-> mọi component dùng hook useContext nếu lấy data trong context mà có giá trị thay đổi đều render lại
+=> Điều này ta cx làm được với redux với cơ chế hoàn toàn tương tự context
+
+Cấu trúc file: 
+Để chia file được như nó là cả 1 vấn đề: nếu ta gom hết vào 1 file thì:
+Provider bao App; Provider dùng context.Provider; app dùng useContext dùng cái mà Provider cung cấp; context mà Provider cung cấp các biến và các hàm; App dùng biến để hiển thị, dùng hàm để làm chức năng đổi biến; Provider làm hết việc useReducer rồi, chỉ cần truyền lại vào context cho ô kia dùng; 
+Để dùng reducer trong Provider: Tạo ra Provider bao các component cần có các biến-> Tạo ra state chứa giá trị mặc định của các giá trị muốn dùng trong các component(do dùng typescript nên phải định nghĩa interface cho kiểu object đó)-> tạo ra reducer xử lý các biến đó, nhét reducer đó vào Provider-> định nghĩa các hàm thay đổi biến trong Provider để các con chỉ cần gọi ngắn gọn thôi-> khai báo context chứa các biến gom vào 1 biến state và các hàm xử lý mà gọi vào reducer, giá trị mặc định cho nó-> dùng nó trong Provider truyền lại cho các con.
+Tương tự ta chia ra nhiều provider nhiều reducer cho mỗi phần
+
+Vd ta thử xử lý việc render ra thông tin từ contract:
+Các trường thông tin ta gọi hết qua các hàm get của contract
+Tạo instance of contract bằng web3 or bằng truffle contract cho nhanh vì đây là dự án truffle-> gọi các hàm get và lấy ra từng trường dữ liệu lưu vào 1 biến-> dùng biến đó trong App-> để lấy dữ liệu k bị render quá nhiều lần thì ta chỉ cần lấy nó ở lần đầu tiên. Nhưng trong DApps thì k dễ vì người dùng có thể đổi mạng khác xong quay lại mạng này(biến web3 đổi) thì nếu contract này cx có ở mạng kia thì phải hiển thị thông tin mạng kia tức là hàm gọi các hàm get của contract được thực hiện lại sau mỗi lần web3 thay đổi
+=> Quy trình thì như v nhưng thực tế ta phải phân chia file nên phải dùng reducer, phải dùng Provider-> cũng chỉ là ban đầu có giá trị mặc định, về sau khi get hết các thứ thì gọi vào reducer để lấy giá trị mới là App hiển thị được mà thôi
+
+Để deploy lên ropstent: 
+Ta dùng luôn tk của truffle develop-> faucet nó-> uncomment dòng trên phần test net-> install package-> thế vào project Id của infura-> uncomment ropsten network-> sửa đổi -> truffle migrate
+
+Ta có thể chuyển đổi giữa hai mạng vừa ropsten, vừa local hiển thị bắt 2 network khác nhau, khi chuyển mạng thì số liệu sẽ mang của từng mạng khác nhau
+
+Trong thực tế, App này có thể nằm trong 1 app lớn. Ta cho 3 ô trống người dùng nhập vào 3 address r ấn nút thì deploy cái multisig wallet này đi. Cứ như thế là 1 ứng dụng tạo ra nh multisig. Ở đây chỉ là TH multisig là 1 App lớn luôn thôi. Chứ cái này k có ứng dụng thực tế vì ng dùng phải được quyền chọn address nào cơ
+
+
+Cơ chế: 
+Dạng 1: gọi 1 hàm trực tiếp bằng việc bấm nút
+Gọi file ts riêng định nghĩa hàm đó bằng web3, ta lấy contract instance và dùng account hiện tại để gọi hàm-> front end gọi nó bằng async function cho loading-> khi hàm chạy xong mới gán lại loading
+Dạng 2: bắt khi nào có sự thay đổi liên tục
+Gọi file ts riêng hàm bắt mọi event-> Viết 1 component gọi hàm bắt event đó switch vào event gì, nếu k có lỗi thì lấy các giá trị log.returnValues và các giá trị cần cho sự thay đổi VD account hiện tại so sánh với cái gì hay các thông tin tối thiểu cần cho việc update mà thôi(reducer có state là mọi thứ từ trước r, ta chỉ cần lấy thêm các thông tin cần để chỉnh sửa)-> dispatch action update đó-> hàm reducer xử lý update dữ liệu mới-> dữ liệu đó bắn vào context bao ngoài để các component bên trong lấy
+Dạng 3: bắt các sự kiện kp do ấn nút hay event
+Gọi file ts riêng chạy hàm setInterval lấy giá trị gì sau mỗi 1s-> tạo 1 component gọi hàm đó với useEffect, hàm này chỉ được gọi lại khi các thông số ảnh hưởng tới vc gọi hàm bị thay đổi-> bên trong ta thấy nếu gọi ok thì callback so sánh nếu có sự khác biệt tức người dùng đã thay đổi gì đó thì ta thực hiện update giá trị-> nếu k update được ta phải reload lại trang web lận để người dùng lại connect vào thì lấy cái giá trị mới đó
+
+
+Refer tới đây trong "React lập trình web3 / # Pattern khi nào nên fetch lại API"

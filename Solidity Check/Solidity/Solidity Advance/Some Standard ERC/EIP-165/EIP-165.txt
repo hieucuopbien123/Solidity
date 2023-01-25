@@ -1,0 +1,10 @@
+Phân biệt: Ethereum Improvement Proposals(EIP) và Ethereum Request for Comments(ERC)
+ERC là định nghĩa các chuẩn cho việc sử dụng ethereum. Còn EIP định nghĩa ra các cải tiến trong ethereum, nó có thể là ERCs, thay đổi trong protocol or các programming tool or bất cứ 1 thứ gì trong hệ sinh thái ethereum
+=> Mọi ERC đều có EIP tương ứng như các token ta code theo chuẩn ERC-20 thì EIP là thứ công bố sự thay đổi đó. Nếu ta có phát kiến improvement mới thì cũng có thể share in EIPs.
+Về mặt code ta chỉ quan tâm ERC, còn về mặt 1 tài liệu bao trùm mọi sự thay đổi thì phải đọc document EIP của nó.
+Hiện giờ trên trang https://eips.ethereum.org/erc đã có tổng hợp rất nhiều chuẩn rồi. Các chuẩn ở final chính là đang chính thức được sử dụng rộng rãi
+
+Chuẩn EIP-165 là chuẩn để publish và xác định interface nào smart contract đang implement.
+
+
+

@@ -1,0 +1,66 @@
+Uniswap v2: 
+Dữ liệu của các pool được lưu hết trong contract. Nó tách periphery và core ra riêng là vì core chứa tài sản, contract trong core phải được bảo mật, vì user tạo ra 1 pool phải gửi token vào contract. periphery là router là thứ điều hướng yêu cầu của người dùng và cũng là thứ k cần bảo mật để người dùng tương tác trực tiếp, dễ dàng chỉnh sửa. Ta muốn thêm tính năng gì cho trader có thể thêm ở contract này
+
+Flow: swap 2 token, thêm liquidity và nhận reward, đốt LP token để lấy lại pair
+
+Contract dự kiến thực thi function:
+Swap: trader dùng là chính
+Caller: cung vào periphery account với allowance cho pool 1 lượng amount có thể swap; contract này cũng gọi liên tục các hàm swap từ token này đến token khác cho đến khi có được token chỉ định. Mỗi hàm swap nhận vào 1 path, 1 array of exchanges để nó chạy từng cái.
+Router: xác định số lượng tiền cần trade trong mỗi exchange của path. Duyệt path từ đầu đến cuối, với mỗi exchange trong path, nó send input và gọi hàm swap của exchange đó(exchange ở đây là cặp pair). Cứ thế đến khi cặp pair cuối cùng có 1 token là cái mà trader gọi; nếu rút, burn và lấy token gửi cho trader.
+Pair: xác thực core có thể maintain liquidity sau khi swap; xem số token trong các reserves đã có, xem số token ta sẽ nhận được khi input vào 1 lượng token nào đó; gửi output token tới destination => mỗi cặp pair đều phải gửi token cuối đến destination, nếu đổi được luôn thì gửi mẹ cho trader, nếu k thì gửi đến cặp pair tiếp theo để đổi tiếp); cập nhập lại reserve sau khi giao dịch bằng hàm update
+Add liquidity:
+Caller: cung periphery account và allowace cho pool 1 lượng để add liquidity; gọi hàm addLiquidity của periphery
+Router: có khả năng tạo cặp pair mới; check nếu cặp pair tồn tại r thì add vào và phải add đúng tỉ lệ; kiểm tra amount hợp lệ, k cho người nào add có vài wei quá nhỏ sẽ ảnh hưởng đến việc tính toán; gọi contract core
+Pair: đào LP token gửi cho caller; gọi hàm update để update reserve khi có người add thanh khoản vào pool có sẵn => trùng với hàm update từng gọi bên hàm swap
+Remove Liquidity: 
+caller: cung periphery account với allowance LP token cho sàn để đổi lấy tài sản ta đang giữ bên trong; gọi periphery contract addLiquidity
+Router: gửi LP token tới pair để pair xử lý mà gửi lại cho provider
+Pair: gửi tới địa chỉ cuối lượng token theo tỉ lệ LP được burn. VD: 1000 token A trong pool, 500B và 90LP token là tổng của pool. Provider nào gửi vào 9token để burn-> tức 10%, ta trích 10% tài sản pool cho họ tức 100A, 50B; đốt LP token; lại gọi update => hàm update trùng nhiều
+
+Quanh quẩn cũng chỉ vài contract coi là hướng đối tượng khác nhau thì cx chỉ có 3 đối tượng, ta xác định từng đối tượng làm gì trong các function
+Kỹ năng gộp: tất cả các tính năng như nhau ta nên gộp vào 1 hàm và perform với đối số cố định. VD: provider rút liquidity hay trader swap liquidity đều phải thực hiện update-> ta gọi chung 1 hàm và nghĩ xem hàm update chỉ cần đối số là gì
+=> viết ra từng chức năng chính và mỗi đối tượng là gì ở chức năng đó
+
+Cần hiểu thêm về vài thuật ngữ trong kinh doanh: 
+Net cost là chi phí ròng, chi phí tổng, k cần phải trả thêm thuế VAT hay dịch vụ gì nữa. Nếu có dấu cộng tức là chưa tính. VD: $70++ tức thuế VAT 10%, thuế dịch vụ 5% chưa có trong số.
+Net profit là lợi nhuận ròng: tổng doanh thu sau khi đã trừ đi chi phí cấu thành sản phẩm, dịch vụ và thuế.
+Gross cost hay gross profit tương tự là tổng tiền chưa trừ các phí liên quan
+
+Marginal cost: chi phí biên. Chi phí cần dùng để sản xuất thêm 1 sản phẩm trong kinh doanh. Chi phí biên có dạng chữ U trong kinh doanh, vì những sản phẩm ban đầu sản xuất tốn nhiều chi phí, về sau đã tận dụng được tài nguyên và kỹ thuật sẵn có làm chi phí biên giảm, nhưng sau đó việc tận dụng bị chậm lại và các chi phí biến đổi tăng dần làm đồ thị cứ đi lên.
+=> trong uniswap, cái này đơn giản là chi phí của 1 đồng token so với đồng khác ở trong pool hay chi phí biên của đồng token0 là reserve1/reserve0
+Avoidable cost: chi phí tránh được là chi phí không phát sinh nếu hoạt động cụ thể k được thực hiện khác với chi phí cố định k thể tránh. Chi phí tránh được được xem như chi phí âm, đôi khi cần sử dụng để đạt được mục tiêu
+Cumulative cost: Chi phí tích lũy là chi phí theo thời gian, được tính bằng chi phí tích lũy của giai đoạn trước cộng chi phí của giai đoạn này. VD: 1 giờ làm tạo 20$ -> sau 1 h thì cumulative cost là 20$, sau 2h thì cumulative cost là 40$.
+=> Trong uniswap, chi phí tích lũy của token0 = chi phí tích lũy gđ trước + timeElapsed*(reserve1/reserve0) vì trong suốt timeElapsed thì đồng token0 có giá là reserve1/reserve0 nên cộng dồn từng khoảnh vào sẽ ra nv.
+Average cost: chi phí bình quân có thể là sản phẩm or thời gian. Nếu là sp thì tổng chi phí mọi sản phẩm / số lượng sp. Nếu là thời gian thì tổng cumulative theo thời gian chia đơn vị thời gian khi tính tổng.
+VD: cumulative của coin từ 10 đến 130 block.timestamp là 1000 thì average price là 1000/120
+
+Tỉ lệ ban đầu cung vào pool phải là 1:1 vì nếu khác 1:1 thì bọn kinh doanh chênh lệch giá sẽ vào kiếm lời ngay và ta sẽ lỗ ngay từ lúc cho vào pool
+
+Ta có thể bỏ qua periphery contract mà gọi core contract trực tiếp nhưng như v sẽ phức tạp và có thể mất tiền nếu có lỗi sai. Ta nên tạo 1 cái riêng như router
+
+Do Uniswap v2 cho phép trao đổi với bất cứ cặp ERC-20 nào nhưng ETH k là ERC-20 và được thao tác với unique mechanism => ta có thể biến ETH thành token ERC20 với WETH là wrapped ether. Cơ chế là gửi contract ETH, nó gửi lại 1 lượng WETH là token ERC20 ngang giá. Ta burn WETH để get ETH lại.
+
+Ta fork uniswap chỉ là phần core của ứng dụng là smart contract, ta thao tác trực tiếp sửa đổi core chứ k liên quan tới blockchain hay front end, ta phải tự code front end or copy font end của uniswap và dùng blockchain ethereum.
+
+Trong Uniswap có 3 thành phần chính: Router tiếp nhận yêu cầu từ user; Factory có nhiệm vụ tạo pool; Pool là 1 cặp Token, mỗi cặp 1 pool riêng.
+Cơ chế: người dùng gọi muốn swap gọi đến Router-> Router tính toán địa chỉ pool và lượng DAI tương ứng-> gọi đến pool để pool trả lại DAI cho người dùng. Người dùng addLiquidity với đầu vào là 1 lượng DAI và ETH của contract Router-> Router check pool DAI và ETH đã tồn tại hay chưa, nếu chưa nó gọi đến Factory để Factory tạo ra Pool DAI-ETH còn có rồi thì thêm 1 lượng DAI-ETH tương ứng vào pool.
+
+Cấu trúc: Uniswap có 2 dự án là core chứa contract Factory, periphery chứa contract Router. 2 contract này ta phải deploy sẵn còn contract Pool được sinh ra sau
+
+Tạo 1 sàn giao dịch: 
+Chức năng: user thêm 1 cặp pair mới, xóa bỏ cặp pair đó đi và nhận lại tiền, thực hiện swap từ coin này sang coin khác -> chỉ có như v
+
+=> hiểu về cơ chế hoạt động, hiểu được cơ chế khi code -> code thực tế, k dựa vào các cái đã có nx r
+
+Thử tự nghĩ ý tưởng: 
+Để tạo cặp pair: người dùng cung địa chỉ contract 2 cặp token, nếu là ETH thì sẽ chỉ 1 token-> cung vào 1 số lượng -> kiểm tra họ thực sự có số lượng đó k-> yêu cầu họ ký xác nhận là allow cho ta-> check họ đã xác nhận thì allow cho contract dùng được bnh số đó của họ đồng thời trừ token của họ đi, nếu là eth thì họ phải gửi cho ta lượng tương ứng. Đi qua Router, check nếu chưa có pool này thì người dùng tự thêm thanh khoản, check đã có pool này thì add vào thôi. Khi đã có và add vào phải gửi cho họ 1 lượng token của sàn bằng tỉ lệ quy ra ETH lượng họ đã đóng góp cho sàn.
+Để người ta swap: người ta cung địa chỉ token muốn lấy, địa chỉ token muốn bỏ-> cung vào số lượng 1 token muốn bỏ-> check họ thực sự có số lượng đó k-> check các pool có cặp này k, nếu có ETH thì check pool ETH có đồng kia k-> check pool có đủ đồng kia k-> yêu cầu họ allow cho ta -> check nếu họ có allow thật đủ 1 lượng >= lượng muốn đổi-> tiến hành trao đổi-> gửi phần tiền trao đổi cho 2 bên-> lấy lãi người kia chia 4 phần -> 1 phần gửi cho contract swap-> 3 phần gửi lại provider-> tính toán lại giá trong pool
+Provider rút tiền: sàn lưu cặp thanh khoản của người nào người nấy riêng vào 1 biến địa chỉ -> người dùng cung index muốn rút cái thứ mấy-> lấy lượng token của sàn họ đang sở hữu-> tính ra lượng ETH tương ứng họ có-> gửi lại họ cặp pair với giá trị tương ứng
+=> vấn đề vẫn còn rất nhiều khi mà chỉ có 1 đồng token và họ có nhiều pool thì sao
+
+Cách tính fee:
+a b -> căn(ab) -> lần cuối add or burn
+a+x ab/(a+x*97.7%) -> căn(ab) + y -> lần add/burn mới nhất
+
+=> [y/(căn(ab)+y)]*(a+x)/x = 0.025% => cung fee vào 1 token nhưng 1 LP token sẽ lấy lượng 2 bên bằng nhau nên mỗi bên chia đôi như này
+=> rút gọn y là được: y = căn(ab)/(4000*a/x+3999) or biến đổi thành giống cái trong whitepaper cx đc

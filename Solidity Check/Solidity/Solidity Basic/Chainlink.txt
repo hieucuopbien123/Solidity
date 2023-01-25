@@ -1,0 +1,8 @@
+Chainlink là thứ giúp blockchain tương tác với thế giới bên ngoài. Nó cũng cung cấp hàm sinh số ngẫu nhiên tối ưu được dùng riêng trong blockchain
+
+VD: NFT721 của ta ta toàn lấy id là 0,1,2 quá đơn giản, ta sẽ dùng chain link để sinh số ngẫu nhiên cho nó. vd 1 vật phẩm NFT nhân vật trong game sẽ có id là 1 số 10 chữ số sinh ngẫu nhiên, 2 số đầu quy định màu da, 2 số sau quy định kiểu tóc,..
+
+Các bước sinh số ngẫu nhiên bằng chainlink:
+--> npm install --save @chainlink/contracts => thư viện chainlink có sẵn or dùng trên remix thì import cái link phiên bản 0.8 vào => cách tốt để sinh số ngẫu nhiên
+
+Để sử dụng IPFS lưu ảnh, ta phải tải về IPFS cho desktop, đăng ảnh sẽ có link

@@ -1,0 +1,91 @@
+Dùng truffle:
+Tool giúp deploy, test và tương tác với contract
+Trong truffle cũng có sẵn ganache riêng mà k cần dùng thêm tool ngoài
+
+=> Refer tới "Web3 lib / Web3 Basic"
+=> Refer tới "Web3 lib / Web3 Advance"
+
+
+
+# Setup nhanh
+npm i truffle -> truffle init -> code contract 
+-> truffle compile: thì bên trong file json có abi nhưng phần networks trống (phải khi deploy thì phần networks sẽ lưu thông tin về network cùng contract này đã deployed trên network đó)
+-> edit mạng trong truffle.config.js: tối thiểu có thông tin networks và version compiler của solidity(version compiler cx k bắt buộc)
+-> truffle develop: chạy ganache có sẵn của truffle, nó ở cổng 9545 nên trong truffle.config.js ta phải dùng networks https://127.0.0.1:9545
+-> Viết script migration cho contract trong folder migrations
+-> Trong console của truffle develop dùng: migrate --reset sẽ deploy lại mọi contract trong thư mục contract
+
+-> Command truffle
+truffle unbox react => tạo nhanh 1 dự án mẫu có truffle + react
+
+truffle build => ra thư mục build nhưng k có thông tin về deploy
+
+
+# Chỉnh config truffle
+=> refer tới "Setup nhanh"
+
+-> Dùng file truffle.config.js:
+Dùng contracts_build_directory xác định vị trí thư mục build, thường nhét vào frontend luôn
+
+
+
+# Viết test trong truffle
+Truffle mặc định dùng tool mocha để viết test
+
+-> Viết test bằng file sol => ít dùng
+-> Viết test bằng file jsO(dùng mocha) => nên dùng 
+
+Khi test chỉ cần chạy 1 phát như dưới là xong, bởi vì nó sẽ dùng 1 network test riêng độc lập, tức mỗi case test ta đều phải viết code deploy r chạy:
+truffle test => nếu dùng folder test mặc định
+truffle test ./path/to/test/file.js
+=> Nó tự chạy cả 2 loại test trong file sol và file js luôn. Với file sol sẽ test trong từng funnction, với file js sẽ test trong từng cục it
+
+truffle tự support biến web3 với provider của mạng test trong JS Truffle test file. Ta có thể dùng trực tiếp mà k cần require Web3.
+
+
+
+# Lỗi khi npm i truffle k chạy được
+Để cài npm thật ra không đơn giản, khi cài 1 package, nó phải biên dịch package đó nhưng không phải package nào cũng compile được. VD để dùng được truffle nó yêu cầu trong máy tính phải có python và C mới npm install được. Nhưng điều quan trọng là phải đúng phiên bản. Điều này rất khó nếu như ta cài thủ công python và C++ không rõ phiên bản nào hỗ trợ chuẩn, xong còn phải thêm environment var. Cái này được xác định trong module node-gyp nhưng module này không dùng được trong window
+=> Để fix bật powershell quyền admin: npm install --global --production windows-build-tools sẽ tự install các tool hỗ trợ mặc định trong window là python và C++ và -g giúp nó tự thêm environment var luôn
+
+Tuy nhiên package windows-build-tools có thể bị lỗi stuck k tải tiếp được. Nên có cách khác:
+Tải python 2.7 trên trang chủ
+npm config set python python2.7
+Tải VS2017 -> mở installer chọn cài desktop development C++ => nếu có VSC rồi thì khả năng là chưa update thôi, cứ update mới nhất là được
+npm config set msvs_version 2017
+-> khởi động lại VSC và cài các package bình thường
+
+
+
+# Basic
+truffle tự tạo contract Migrations sẵn
+truffle config có nhiều options hay ta uncomment để dùng
+truffle develop thực chất dùng ganache với network id là 5777
+
+truffle phù hợp với thư viện web3, nó tự support biến web3 trong file các file test để dùng trực tiếp. Ta vẫn có thể dùng ethers trong truffle được nếu muốn. Nếu dùng ethers thì nên dùng với waffle hơn. Waffle ra đời sau truffle và có nhiều điểm cải tiến, tự thích ethers hơn. Còn hardhat vẫn là tool pro nhất, nó tích hợp cả plugin với waffle bên trong.
+
+
+
+# Thêm mạng truffle vào ví metamask
+Network Name: Truffle Testnet
+New RPC URL: http://localhost:9545
+Chain ID: 1337
+Currency Symbol: ETH
+
+Tương tự dùng để thêm đủ loại khác vào ví metamask
+
+
+
+# Kết hợp truffle và ganache
+Cũng là "# Cách connect truffle với 1 mạng bất kỳ"
+
+truffle mặc định chạy tại 9545, ganache-cli mặc định chạy tại 8545
+Với truffle ta có thể setup vào 1 network nào và build contract chứa thông tin liên quan network đó
+Với ganache-cli ta có thể chạy network và config tùy ý, sinh ra 10 tk 
+
+=> Ta có thể tạo ra network có 10tk giống metamask bằng ganache-cli, rồi connect truffle với mạng đó là có thể tương tác với sm bằng tk metamask mà kp import account mới mất tg:
+ganache-cli -m "<seed phrase của metamask>"
+Chỉnh truffle-config network develop cho mạng ganache local => truffle migrate --reset --network develop => nếu chạy nhiều lần cùng 1 mạng phải reset account để nó xóa mọi transaction history, tiền mới đúng về 100ETH
+
+=> refer tới "Web3 lib / Web3 Advance"
+

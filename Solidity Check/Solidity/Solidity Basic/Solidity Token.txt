@@ -1,0 +1,24 @@
+tạo contract token kế thừa từ ERC20
+viết hàm khởi tạo gọi _mint, khởi tạo cả ERC20 với name và symbol-> deploy
+=> nó tạo 1 lượng coin supply ban đầu có sẵn cho ta, owner chính là đối số 1 hàm mint, owner sẽ sở hữu toàn bộ lượng initial supply-> hàm transfer cho phép gửi coin từ account hiện tại sang account khác
+Hàm approve cho phép 1 account khác dùng chung 1 số lượng token với account hiện tại=> kể cả 2 account trả có đồng nào vẫn có thể approve bất cứ số lượng nào để bất cứ lúc nào owner có token, spender sẽ dùng chung đc
+Hàm allowance trả ra số lượng token dùng chung cho 2 account với owner là chủ ban đầu và spender là người dùng chung
+Hàm transfer from cho phép spender(account hiện tại) gửi allowance từ owner cũ sang 1 account khác
+Nó lưu allowance bằng cách mapping(<owner>=>mapping(<spender>,uint))
+=> Do smart contract rất ảo diệu nên mọi thứ đều có thể thay đổi, đều có thể cần upgrade trong tương lai như tính năng burn or ngược lại với burn có thể thay đổi lượng total supply hiện tại nên hạn chế dùng các thứ fix như constant
+
+Cách 2: tự tạo token của riêng mình k dùng kế thừa
+Để tạo token thì phải tuân theo những chuẩn có sẵn. ERC (Ethereum Request for Comment) là hình thức phát hành nghiên cứu giống cái RFC nhưng là của riêng nền tảng ethereum mà thôi. ERC là 1 dạng của EIP(Ethereum Improvement Proposals) cũng giống như BIPs(Bitcoin Improvement Proposals) của bitcoin thôi. Cứ có 1 phát kiến mới để phát triển thì sẽ gọi nó là BIP<number> với number là số các phiên bản mới. Các con số đi sau ERC là số đăng ký phiên bản để phân biệt với các chuẩn ERC khác, phổ biến là ERC20, ERC223, ERC721,.. 
+ERC20 là chuẩn tạo token phổ biến nhất hiện nay của ethereum. Khi tạo token, 1 ví điện tử sẽ biết các tương tác vói token nếu ta đang dùng chuẩn ERC20. Còn nếu ta k tuân theo chuẩn nào cả thì token sẽ là 1 điều mới mẻ chưa đc biết tới và chưa có ví điện tử nào nhận biết được nó nên ta sẽ k thể tương tác với nó bth thông qua ví đc. Ta sẽ phải tạo 1 cái ví có khả năng nhận diện điều mới mẻ đó 
+ERC20 bao gồm 6 hàm cơ bản: totalSupply, balanceOf, transfer, transferFrom, approve, allowance và 2 event Transfer và Approval.
+Tuy nhiên 8 thứ trên k bắt buộc phải có nhưng các hàm như: name, totalSupply, symbol, decimals là các hàm bắt buộc phải có tên đúng như v thì ví mới nhận dạng được token.
+Ta có thể nhét 8 thứ trên vào 1 interface IERC20 và cho contract override cho chuẩn
+
+Ethereum có 4 mạng thử nghiệm, mỗi mạng dùng cho mục đích khác nhau. Ta có thể vào faucet của các mạng để lấy ethereum cho testnet. 
+Rinkeby dùng cho client run geth
+Ropsten là POW testnet, gần giống với ethereum nhất
+=> kết nối ví metamask với remix chuyển sang mạng testnet cần dùng-> deploy và sử dụng bth
+
+Khi deploy, ta vào ví-> và thêm token tại địa chỉ là transaction của ta thì ví ta sẽ có token mới đó. Tuy nhiên khi check trên etherscan(testnet cx có etherscan để check transaction), tiền của ta đã có nhưng nó k có thanh khoản, chỉ đáng giá 0 ether. Để tiền của ta có thanh khoản thì ta phải xác định được mục đích nó sinh ra để làm gì. VD ta dùng token để chi trả cho việc truy cập vào 1 ứng dụng nào đó và khi mọi người cần nó, nhiều người dùng nó, nó sẽ bắt đầu có thanh khoản. Tức là ta cần xây dựng thêm 1 hệ thống để token được sử dụng
+
+Interface có thể kế thừa từ 1 interface khác

@@ -1,0 +1,266 @@
+Web3:
+npm install web3
+
+const Web3 = require("web3");
+const web3 = new Web3("<API /Infura url>");
+web3.eth.getBlockNumber().then(<function>);
+web3.eth.net.getId();
+web3.eth.getBalance("<address>").then(<function(<balance>)>).catch(console.error)
+web3.eth.getAccounts().then(<function(<accounts>)>);
+web3.utils.fromWei("<num>","<ether>");
+web3.eth.getTransaction('<address>').then(data => { data.gasPrice  data.blockHash  data.nonce  data.hash  data.gas data.from  data.to  data.blockNumber  data.value  data.input data.gas  data.TransactionIndex });
+web3.eth.getGasPrice().then(<functiton>);
+web3.utils.toChecksumAddress('<address>');
+
+const contract = new web3.eth.Contract(<abi of contract>, <address of contract>);
+contract.methods.<tên hàm constant>(<params>).call().then(<function>);
+contract.methods.<tên hàm>(<params>).send({
+	from: "<address>",
+	value: <num>,
+	gas: <num>,
+	gasPrice: <num>
+},<function(error, transactionHash){ }>);
+contract.getPastEvents("<tên event>", {
+	fromBlock: <number>,
+	toBlock: <number>,
+	filter: { dst: "<address indexed của event>" }
+}).then(<data> => <data>[0].returnValues.dst);
+web3.eth.getStorageAt("<address>", <position>, <defaultBlock>, <function(error, result)>)
+
+const <web3> = new Web3(new Web3.providers.WebsocketProvider("<api wss://>"));
+contract.events.<tên hàm event>({ filter: { src: "<địa chỉ contract tạo event>" } }, <function(error, log){ }>)
+new Web3.providers.HttpProvider("<http://>");
+
+web3.eth.getStorageAt("<address>", <pos>, <function>)
+Web3.utils.toASCII("<hex>");
+Web3.utils.soliditySha3({type: "uint", value: <số> })
+Web3.utils.numberToHex("<number>");
+Web3.utils.toBN(<string từ log>);
+web3.currentProvider;
+
+
+truffle:
+npm install truffle
+truffle
+truffle version
+truffle init
+truffle unbox pet-shop
+truffle create contract <tên contract>
+truffle compile
+truffle create migration <tên file>
+truffle migrate
+truffle create test <tên contract>
+truffle test
+npm install truffle-assertions
+
+Truffle Develop:
+truffle develop
+
+Mocha and Chai and truffle-assertionss của test.test.js:
+const <contractVar> = artifacts.require('<tên contract>');
+const truffleAssert = require('truffle-assertions');
+const { assert } = require("chai");
+const chai = require("chai");
+chai.use(require("chai-as-promised"));
+const expect = chai.expect;
+contract("<tên contract>", (accounts) => {	
+	let instance;
+	describe("<tên cụm test>", async() => { <test> })
+	    before("<tên test>", async() => {
+		instance = await <contractVar>.deployed();
+		instance = await <contractVar>.new(<>);
+	});
+	it("<tên test>", async()=> {
+		await expect(<instance gọi hàm>).to.be.rejected;
+		const res = await instance.<tên hàm>(<params>, { from: accounts[<index>] })
+		const { logs } = res;
+		console.log(logs[0].event/args.<biến event>);
+		assert.equal(<var>, <value>, "<message>");
+
+		await truffleAssert.reverts(<asyncFunc>, "<message>")
+		truffleAssert.eventEmitted(<var>, "<tên event>", <event> => {
+			event.<param of event>
+		});
+		truffleAssert.prettyPrintEmittedEvents(<giá trị trả về của hàm>)
+	})
+})
+
+truffle-config.js:
+module.exports = {
+	networks: {
+		development: {
+			host: "<host of blockchain url>",
+			port: <port blockchain mở>,
+			network_id: "<network id của blockchain/*>"
+		},
+		develop: {
+			port: <port>,
+			network_id: <>,
+			accounts: <>,
+			defaultEtherBalance: <>,
+			blockTime: <>
+		}
+	}
+}
+
+deploy.js:
+const <varContractDeploy> = artifacts.require("<link file solidity>");
+module.exports = function(deployer){ deployer.deploy(<varContractDeploy>); }
+
+truffle console:
+<tên contract>.deployed().then(<data> => <instance> = <data>)
+web3.eth.getBalance("<address>").then(<function(<balance>)>).catch(console.error)
+web3.eth.getAccounts().then(<function(<accounts>)>);
+web3.utils.fromWei("<num>","<ether>");
+web3.eth.getTransaction('<address>').then(data => { data.gasPrice  data.blockHash  data.nonce  data.hash  data.gas  data.from  data.to });
+web3.eth.getGasPrice().then(<functiton>);
+<tên contract>.<hàm của contract>(<params>, { 
+	from: "<address>", 
+	value: web3.utils.toWei("<num>", "<ether>")
+})
+await web3.eth.getChainId();
+await web3.eth.net.getId();
+migrate
+
+ganache-cli:
+npm install ganache-cli
+ganache-cli -p <port>
+
+
+lite-server:
+yarn add lite-server --dev
+{
+	"port": <port>,
+	"files": ["<link folder chứa các file>/**/*.{html,css,js}"],
+	"server": {
+		"baseDir": "<link folder chứa các file html, css, js>"
+	}
+}
+
+
+WebAPI browser: 
+fetch(<>)
+window.ethereum.enable();
+
+
+truffle-contract:
+npm install @truffle/contract
+var truffleContract = require("@truffle/contract");
+$.getJSON("<built contract.json>", <data> => {
+	var <contract> = TruffleContract(<data>);
+	<contract>.setProvider(<web3 provider>);
+	<contract>.deployed().then(<instance> => {
+		<code với instance đó như trong web3>
+	});
+	<contract>.<hàm là transaction>(<params>, { from: account }) => chỉ dùng với browser
+})
+
+
+Hardhat:
+npm install --save-dev hardhat
+npm install --save-dev @nomiclabs/hardhat-ethers ethers @nomiclabs/hardhat-waffle ethereum-waffle chai @nomiclabs/hardhat-web3 web3
+npx hardhat
+npx hardhat help <tên task>
+npx hardhat compile
+npx hardhat test
+npx hardhat node
+npx hardhat run scripts/deploy.js --network <network-name>
+npx hardhat flattener > test.sol
+
+npm install @openzeppelin/contracts
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
+hre.ethers; hre.waffle; hre.artifacts.readArtifactSync("<tên contract>");
+
+<contract>.sol:
+import "hardhat/console.sol";
+console.log(<>);
+
+hardhat.config.js:
+require("@nomiclabs/hardhat-waffle / @nomiclabs/hardhat-web3 / mọi plugin và module nodejs");
+const API_KEY = "<Key API của project liên kết với mạng blockchain cần deploy/alchemy key>";
+const <PRIVATE_NETWORK_KEY> = "<private key của network>";
+<khai báo các task/ require("<link đến task>")>
+module.exports = {
+  solidity: "0.7.3",
+  networks: {
+    ropsten: {
+      url: `https://eth-ropsten.alchemyapi.io/v2/${API_KEY}`/'<url của dự án>',
+      accounts: [`0x${PRIVATE_NETWORK_KEY}`]
+    }
+  }
+};
+
+task.js:
+const { task, types } = require("hardhat/config);
+network.name == "hardhat"
+task("<tên task>", "<description>", async(taskArgs, hre, runSuper)=>{
+	hre; 
+	if(runSuper.isDefined)
+		runSuper({ <object param> })
+	
+}).appPositionalParam("<tên param>", "<mô tả>")
+.addParam("<tên param>", "<mô tả>")
+.addOptionalParam("<tên param>", "<description>", <default value>);
+
+task("<tên task>", "<description>")
+.setAction(async(taskArgs, hre, runSuper) => { 
+	await hre.run("<tên subtask>", { <object param> })
+})
+subtask("<tên subtask>", "<mô tả>").<y hệt task>
+
+deploy.js:
+async function main() {
+    const <contractFactoryVar> = await ethers.getContractFactory("<tên contract>");
+    const <contractVar> = await <contractFactoryVar>.deploy();
+    await <contractVar>.deployed();
+}
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
+
+test.js with chai and hardhat:
+const { expect } = require("chai");
+describe("<tên cụm test>", function() {
+	var instance;
+	beforeEach(async function() {
+		<tên contract factory> = ethers.getContractFactory("<tên contract>");
+		instance = <tên token>.deploy(<tên contract factory>);
+		await instance.deployed();
+	})
+	it("<tên test>", async function() {
+		expect(<var>).to.equal(val);
+		await expect(<instance>.<tên hàm>(<params>)).to.be.revertedWith("<>");
+	})
+})
+
+@nomiclabs/hardhat-waffle ethers:
+const [addr1] = await ethers.getSigners();
+addr1.address; await addr1.getAddress()
+addr1.sendTransaction({
+	to/from: "<address>", nonce: <num>, value: <number>, gasLimit: <>, gasPrice: <>, chainId: <>, 
+});
+(await addr1.getBalance()).toString();
+ethers.provider.getCode("<address>");
+ethers.constants.WeiPerEther
+
+const <contractFactory> = ethers.getContractFactory("<tên contract>");
+const <instance> = <contractFactory>.deploy();
+await <instance>.deployed();
+<instance>.address;
+const <transaction> = await <instance>.connect(addr1).transfer(<address>, <num>);
+const <transaction> = await <instance>.<tên hàm>(<params>);
+<transaction>.chainId/ .data/ .value/ .gasPrice/ .gasLimit/ .nonce/ .to
+<transaction>.wait();
+getContractAt("<tên contract>", <address>);
+
+
+ethersjs:
+new ethers.providers.Web3provider(window.ethereum);
+const contract = new ethers.Contract(<contract address>, <abi>, <signer/ provider>);
+contract.<hàm>(<params>); contract.transfer();
+

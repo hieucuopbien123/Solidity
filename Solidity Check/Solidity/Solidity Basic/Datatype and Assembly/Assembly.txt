@@ -1,0 +1,5 @@
+assembly vẫn được dùng trong solidity vì ngôn ngữ này có những thứ k làm được. Assembly cho ta tương tác trực tiếp với EVM, trực tiếp với bộ nhớ nên khá nguy hiểm. Nếu k dùng được solidity mới phải viết bằng assembly.
+
+Khi EVM chạy code, nó sẽ dùng các Opcode để xử lý stack từ từ như ADD, STOP, SUB,.. và khi dùng assembly ta sẽ thao tác trực tiếp với các opcode đó.
+
+Trong EVM, các biến được lưu trong 1 single 256 bits slot. VD: uint a; được lưu trong 1 slot. 1 array or mapping sẽ lưu trong nhiều slot. Các opcode trong EVM sẽ thao tác vói single slot.
