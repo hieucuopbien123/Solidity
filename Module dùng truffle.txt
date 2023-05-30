@@ -7,6 +7,14 @@ Trong truffle cũng có sẵn ganache riêng mà k cần dùng thêm tool ngoài
 
 
 
+# Basic
+-> flatten contract => ref tới "Solidity / # NFT / Deploy NFT lên OpenSea + Etherscan + Remix + Truffle flatten"
+
+-> truffle console => chạy command với truffle
+ref tới "Solidity Advance / SecuritySolidity / AccessPivVar"
+
+
+
 # Setup nhanh
 npm i truffle -> truffle init -> code contract 
 -> truffle compile: thì bên trong file json có abi nhưng phần networks trống (phải khi deploy thì phần networks sẽ lưu thông tin về network cùng contract này đã deployed trên network đó)
@@ -19,6 +27,7 @@ npm i truffle -> truffle init -> code contract
 truffle unbox react => tạo nhanh 1 dự án mẫu có truffle + react
 
 truffle build => ra thư mục build nhưng k có thông tin về deploy
+
 
 
 # Chỉnh config truffle
@@ -88,4 +97,6 @@ ganache-cli -m "<seed phrase của metamask>"
 Chỉnh truffle-config network develop cho mạng ganache local => truffle migrate --reset --network develop => nếu chạy nhiều lần cùng 1 mạng phải reset account để nó xóa mọi transaction history, tiền mới đúng về 100ETH
 
 => refer tới "Web3 lib / Web3 Advance"
+
+
 

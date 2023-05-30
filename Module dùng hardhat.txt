@@ -1,0 +1,220 @@
+Hardhat
+
+
+
+# Basic
+npm install --save-dev hardhat => dùng hardhat tự có config mặc định
+
+Còn nhiều thư viện khác không phải của @nomiclabs nhưng vẫn chuyên dùng cho hardhat => ref tới "ZKP / # Project BattleZip"
+
+-> Dùng log của hardhat trong smart contract 
+
+
+
+# Thao tác hardhat
+-> Hardhat config***
+--> require các package plugin của hardhat:
+@nomiclabs/hardhat-waffle => để dùng chai cho test
+@nomiclabs/hardhat-ethers => để dùng ethers
+@nomiclabs/hardhat-web3 => để dùng web3 
+
+Dùng được các biến trong mọi script, VD lấy trực tiếp hre.ethers hoặc lấy ethers nó cũng hiểu là từ hre
+
+--> extendEnvironment thêm hre
+Thêm các thuộc tính vào hre và dùng được ở mọi test, script, task, console
+
+Thường dùng:
+hre.network.provider => nếu config network rồi, trả ra provider có tc EIP1193-compatible
+
+hre.ethers => nếu dùng hardhat-ethers
+hre.ethers.provider.getNetwork().chainId
+hre.ethers.constants.AddressZero
+ethers.utils.parseUnits("1", "ether"); // 1e18
+
+hre.web3 => nếu dùng hardhat-web3
+web3.utils.toChecksumAddress(<address>) => convert address sang 1 checksum version, bằng cách chỉnh uppercase, lowercase của 1 vài ký tự cần thiết theo thuật toán checksum. Nó prevent lỗi liên quan đến address khi copy paste
+web3.eth.getBalance(<address)
+web3.utils.fromWei(<balance>, "ether")
+
+--> Dùng task:
+Task trong hardhat giúp tạo automation, chạy các lệnh và tự động thực hiện các thứ:
+
+const { task, types } = require("hardhat/config");
+
+npx hardhat => xem các list task có thể Chạy
+npx hardhat <tên task> => chạy script task nào
+
+--> Export data:
+---> solidity: "0.7.3" => Version of solidity dùng đúng trong contract
+solidity: {
+  compilers: [
+    {
+      version: "0.6.11",
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200
+        }
+      }
+    },
+    {
+      version: "0.8.11",
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200
+        }
+      }
+    },
+  ]
+}
+=> Nếu các contract dùng version khác nhau gây lỗi phải ghi đủ
+=> Khi set nhiều phiên bản, nếu trùng 2 số đầu thì dùng, nếu k sẽ dùng phiên bản cao nhất
+
+solidity: {
+  compilers: [{
+      version: "0.5.5"
+    },
+    {
+      version: "0.6.7",
+      settings: {}
+    }
+  ], 
+  overrides: {
+    "contracts/Greeter.sol": {
+      version: "0.8.4",
+      settings: {}
+    }
+  },
+  settings: {
+    optimizer: {
+      enabled: true,
+      runs: 200,
+    },
+  },
+},
+// Xđ cụ thể contract nào dùng version nào. settings đặt ở ngoài sẽ set chung cho compiler
+
+--> Xđ path chi tiết:
+paths: {
+  sources: './contracts',
+  tests: './test',
+  cache: './cache',
+  artifacts: './artifacts',
+},
+
+---> Config cho network mà ta muốn deploy contract lên.
+networks: {
+  goerli: {
+    url: "<rpc url của mạng, thường lấy từ infura or Alchemy",
+    accounts: ["<private key của tk>"],
+  },
+}
+=> Dùng 1 mạng custom bên ngoài
+
+defaultNetwork: "hardhat",
+networks: {
+  hardhat: {},
+  development: {
+    url: "http://::1:8545/"
+  }
+}
+=> Dùng mạng localchain của hardhat. Nếu có defaultNetwork, chỉ cần npx hardhat run là tự hiểu dùng localchain
+
+networks: {
+  goerli: {
+    url: "<rpc url>",
+    accounts: {
+      mnemonic: "...",
+      path: "m/44'/60'/0'/0",
+      initialIndex: 0,
+      count: 10,
+    }
+  },
+  rinkeby: {
+    <Tương tự>
+  }
+}
+=> Khi deploy lên mạng nào sẽ tự dùng ví config trong network đó
+
+--> mocha: { timeout: 2000000 } => dùng cho test
+
+--> Config etherscan nữa, phải cài @nomiclabs/hardhat-etherscan
+etherscan: {
+  apiKey: {
+    rinkeby: "<url etherscan cho rinkeby>",
+    goerli: "<url etherscan cho goerli>",
+  }
+}
+=> Ref tới "ZKP / # Project BattleZip"
+
+-> Hardhat chạy chain***
+npx hardhat node => chạy 1 chain local mà có HTTP và WebSocket JSON-RPC server tại http://127.0.0.1:8545/
+
+-> Hardhat deploy***
+--> Script deploy: 
+const hre = require("hardhat"); // K có vẫn lấy được biến bth
+
+Có thể chạy các task ngay trong script với: await hre.run("<tên task");
+
+---> Dùng hardhat-ethers:
+const [deployter] = hre.ethers.getSigners(); => lấy list address nếu đã set trong config or chạy local chain tự dùng 10 addresses hardhat cung cấp
+deployer.address  
+await deployer.getBalance();
+(await (await ethers.getContractFactory("ContractName")).deploy()).address;
+
+Hoặc gọi: ((await (await ethers.getContractFactory("ContractName")).deploy()).deployed).address;
+=> Hàm deployed sẽ chờ cho contract được mined trong 1 block bởi 1 miner luôn. 
+Thực tế, phải thêm await <contract>.deployed(); nhưng khi ở mạng test thì deploy gần như tức thời nên k cần dùng    
+
+---> Viết hàm deploy:
+C1: Trong file deploy.js, ta viết gọi hàm main() deploy trực tiếp k có tham số gì cả
+
+C2: Gọi 1 hàm export async nhận {ethers, deployments}
+const { address } = deployments.deploy("<Tên contract>", {
+  from: "<address account>",
+  log: true,
+  args: [<tham số truyền vào hàm>],
+});
+ethers.provider._network.chainId => k dùng được như này nếu làm C1
+
+--> Command deploy
+---> Testchain:
+Hardhat mặc định có 1 testchain có thể deploy bất cứ lúc nào mà k cần config gì. Mỗi lần deploy là mọi thứ reset.
+npx hardhat run scripts/deploy.js --network hardhat
+
+---> localchain: Khi chạy npx hardhat node, nó chạy 1 chain local kèm với 1 server url rpc ở cổng 8545
+npx hardhat run scripts/deploy.js --network localhost => deploy lên localchain của hardhat.
+
+---> network bất kỳ: phải config chuẩn trong hardhat.config
+npx hardhat run --network <tên network trong file config> scripts/deploy.js
+
+-> Hardhat test***
+const {expect} = require("chai");
+const assert = require("assert");
+
+Thứ tự: Dùng describe -> khai báo biến chung -> khai báo beforeEach -> lồng tiếp describe bên trong -> dùng it bên trong và khai báo các hàm async thực hiện từng thứ.
+
+--> Script:
+await <contract>.<hàm>(<params>); => thực hiện hàm với msg.sender là người deploy
+await <contract>.connect(<address>).<hàm>(params); => thực hiện hàm bởi 1 account cụ thể
+
+Hoặc: const tx = await (await <contract>.connect(<address>).<hàm>(params)).wait(); => Chờ cho tx mined thành công
+=> ref tới "ZKP / # Project BattleZip"
+
+--> Command: npx hardhat test => tự chạy các file trong folder test
+
+
+
+# Fork mạng
+-> Khi fork mạng, mọi state ở mạng gốc vẫn preserve trên mạng fork nhưng ta kiểm soát được tiền của mọi address.
+Fork mạng bất kỳ với url: https://hardhat.org/hardhat-network/docs/guides/forking-other-networks
+
+C1: npx hardhat node --fork https://mainnet.infura.io/v3/<key> => chạy luôn mạng fork
+C2: config hardhat và npx hardhat node bth
+
+=> Nhiều lúc deploy lên mạng hardhat localchain bị lỗi nonce. Có thể dùng ganache-cli làm blockchain thay thế fix được lỗi. Ganache ui cũng chạy được nhưng k config được port như cli.
+
+=> Tool tenderly giúp fork mạng rất mạnh và thường là chạy được nhưng bản free bị giới hạn 4 tx 1 ngày.
+
+
