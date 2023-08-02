@@ -15,6 +15,6 @@ describe("Greeter", function () {
     // Chỉ khi nào là transaction mới dùng được các hàm của transaction k thì chỉ là giá trị trả về bth
     await setGreetingTx.wait();
 
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
+    expect(await greeter.greet()).to.equal("Hola, mudo!");
   });
 });

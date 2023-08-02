@@ -1,10 +1,14 @@
 Dùng ganache:
-Tool tạo blockchain để test
+Ganache là 1 tool tạo blockchain cá nhân để test for rapid Ethereum và phát triển ứng dụng phân tán. Có thể dùng nó để develop, deploy, test dApps trong môi trường an toàn. Có 2 loại là UI và CLI.
+Ganache-cli(Ganache commandline): sẽ kết hợp cùng truffle để tạo test environment đủ tính năng.
+
 
 
 # Dùng cli
 -> Dùng bản cũ ganache-cli deprecated (chuyển thành ganache):
 npm i ganache-cli -g -> terminal chạy: ganache
+
+Chạy với port cụ thể: ganache-cli -p <port>
 
 --> Các option:
 ganache-cli --host 127.0.0.1 --blockTime 2 --networkId 12345678

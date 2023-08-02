@@ -3,9 +3,24 @@ Hardhat
 
 
 # Basic
-npm install --save-dev hardhat => dùng hardhat tự có config mặc định
+HardHat: mạnh hơn Truffle và dùng cho các dự án phức tạp, nhanh hơn, nhiều tính năng hơn. Nó là môi trường compile, test, debug luôn(hỗ trợ console.log trong contract). Nó hỗ trợ typescript, có plugin thêm chức năng, tích hợp mạng local Ethereum network designed for development
 
-Còn nhiều thư viện khác không phải của @nomiclabs nhưng vẫn chuyên dùng cho hardhat => ref tới "ZKP / # Project BattleZip"
+Còn nhiều thư viện khác không phải của @nomiclabs nhưng vẫn chuyên dùng cho hardhat => ref tới "ZKP / # Project BattleZip".
+
+-> Setup cơ bản
+npm install --save-dev hardhat => dùng hardhat tự có config mặc định
+npx hardhat => khởi tạo 1 dự án hardhat nếu chưa có gì
+
+Cài đặt plugins built-in của hardhat:
+npm install --save-dev @nomiclabs/hardhat-ethers ethers @nomiclabs/hardhat-waffle ethereum-waffle chai => 2 plugins ethers.js và waffle giúp interact với Ethereum và test contract, 2 plugin này là tối thiểu cần thiết để compile và làm mọi thứ. Sau đó phải require nó từ file hardhat-config.js r mới dùng biến ethers ở file script/deploy.js để deploy nó lên mạng được. Nếu k làm v thì k deploy nó lên mạng được. 
+-> Thêm require vào hardhat.config.js (phải require đúng vào file config này mới được) -> Tạo thư mục contracts và code file solidity
+npx hardhat compile  => để compile contract. Khi chạy các lệnh liên quan, hardhat sẽ tìm file hardhat.config.js gân nhất để chạy
+-> Tạo thư mục test và code file js để test: npx hardhat test => để test các file trong thư mục test. Nó sẽ tự động compile lại nếu nó bị thay đổi kể từ lần test trước (default hardhat là connect với local network r)
+-> Code file js deploy contract trong thư mục scripts
+npx hardhat run scripts/deploy.js --network <network-name> => để deploy, nếu k có --network thì mặc định deploy sang local
+Để deploy vào remote networks, chỉnh file hardhat.config.js theo mạng nào muốn deploy vào -> chạy hàm deploy có option --network. VD deploy mạng ropsten: npx hardhat run scripts/deploy.js --network ropsten
+
+=> 3 công đoạn deploy, compile, test là rời nhau được chứ k cần phải compile trước r mới test sau vì nó ngầm nếu có thay đổi sẽ tự compile r. Ta có thể dùng Alchemy là nền tảng cung cấp API key cho blockchain network để connect vào dự án, giống infura, và xuất khóa riêng tư để dùng cho app(tốt hơn infura)
 
 -> Dùng log của hardhat trong smart contract 
 
@@ -13,7 +28,7 @@ Còn nhiều thư viện khác không phải của @nomiclabs nhưng vẫn chuy�
 
 # Thao tác hardhat
 -> Hardhat config***
---> require các package plugin của hardhat:
+--> require các package plugin của hardhat => có rất nhiều plugin
 @nomiclabs/hardhat-waffle => để dùng chai cho test
 @nomiclabs/hardhat-ethers => để dùng ethers
 @nomiclabs/hardhat-web3 => để dùng web3 
@@ -36,11 +51,18 @@ web3.utils.toChecksumAddress(<address>) => convert address sang 1 checksum versi
 web3.eth.getBalance(<address)
 web3.utils.fromWei(<balance>, "ether")
 
+---> Trong Hardhat cũng có artifacts nó là 1 trường của hre. artifact có hàm readArtifactSync("<tên contract>"); sẽ trả ra object, object này có luôn abi của contract -> tức là ta có thể lấy abi của bất cứ contract nào sau khi build ở bất cứ đâu
+
+
 --> Dùng task:
 Task trong hardhat giúp tạo automation, chạy các lệnh và tự động thực hiện các thứ:
 
 const { task, types } = require("hardhat/config");
+Để tạo 1 task: 
+task("tên", "mô tả") => trong hardhat có các task built-in sẵn có thể xem bằng cách npx hardhat => sẽ hiện ra các available task bao gồm cả task ta tự thêm. Ta có thể tạo ra các task như reset lại state of môi trường, tương tác với contract. Task dùng được mọi plugin bth vì configuration file require các plugin luôn được chạy trước mọi thứ khác
+VD: npm install --save-dev @nomiclabs/hardhat-web3 web3  vào trong file config để dùng web3js instance -> là dùng được web3 trong file task.
 
+Command:
 npx hardhat => xem các list task có thể Chạy
 npx hardhat <tên task> => chạy script task nào
 
@@ -150,6 +172,10 @@ etherscan: {
 
 -> Hardhat chạy chain***
 npx hardhat node => chạy 1 chain local mà có HTTP và WebSocket JSON-RPC server tại http://127.0.0.1:8545/
+Sau đó ta có thể deploy contract vào mạng đó với options: 
+npx hardhat run scripts/deploy.js --network hardhat 
+or: npx hardhat run scripts/deploy.js --network localhost
+=> Thêm vào metamask chain id 31337
 
 -> Hardhat deploy***
 --> Script deploy: 
@@ -194,6 +220,7 @@ const {expect} = require("chai");
 const assert = require("assert");
 
 Thứ tự: Dùng describe -> khai báo biến chung -> khai báo beforeEach -> lồng tiếp describe bên trong -> dùng it bên trong và khai báo các hàm async thực hiện từng thứ.
+=> npx hardhat test
 
 --> Script:
 await <contract>.<hàm>(<params>); => thực hiện hàm với msg.sender là người deploy
@@ -203,6 +230,31 @@ Hoặc: const tx = await (await <contract>.connect(<address>).<hàm>(params)).wa
 => ref tới "ZKP / # Project BattleZip"
 
 --> Command: npx hardhat test => tự chạy các file trong folder test
+
+
+
+# Hardhat test
+-> ref tới "hardhat test" bên trên
+Ta có thể test ở localchain, mỗi lần chạy phải deploy lại or test ở mạng public khác thì deploy 1 lần r tương tác thoải mái. Sử dụng ethersjs ở mọi file để thao tác.
+
+Command "npx hardhat" kiểu: 
+if(cmd1 == npx hardhat)
+  import file config;
+if(cmd2 == test)
+  chạy file config có hardhat network không
+  if(có) chạy
+  if(k có)
+  {
+    bật hardhat network local
+    chạy file test.js
+  }
+
+Khi deploy với "npx hardhat run scripts/deploy.js --network <network-name>" thì:
+Cơ chế vẫn ez: Đầu tiên chạy file config và sinh biến global hre. Biến hre là biến global nên có thể truy xuất trực tiếp vào chúng cx đc như ethers. Khi sử dụng hardhat, ta buộc phải dùng thư viện ethersjs, nhưng hardhat có bổ sung thêm cho thư viện đó. Khi ta install @nomiclabs/hardhat-ethers thì nó có tác dụng sửa lại thư viện ethersjs đi 1 chút thành các hàm có tên khác ví dụ getContractFactory thì ethersjs k có nhưng @nomiclabs/hardhat-ethers fix thành có và đồng thời biến ethersjs thành 1 thuộc tính của biến global hre. Do đó @nomiclabs/hardhat-ethers gọi là plugin chứ kp 1 thư viện và nó k cung cấp thêm hàm mới. 
+=> Ở trong file package.json, plugin có thể chia ở trường devDependencies còn library chia ở trường dependencies. Nếu k dùng plugin thì sẽ phải export require rất phức tạp vì biến ethers khi require là copy và tạo mới khi import, Ta dùng ở các file khác sẽ chỉ muốn được require 1 lần và export đi khắp nơi nên plugin hardhat biến nó thành global cho ta
+
+Tương tự với @nomiclabs/hardhat-waffle biến thư viện ethereum-waffle thành biến global là waffle. Nhưng do dùng @nomiclabs/hardhat-waffle thì chắc chắn sẽ dùng ethersjs nên bên trong @nomiclabs/hardhat-waffle nó import luôn @nomiclabs/hardhat-ethers thành ra trong file config nó thêm đúng 1 dòng:
+require("@nomiclabs/hardhat-waffle"); là dùng đc ethers ở mọi file luôn như task, test, script vì nó nằm ở global hre rồi, VD hre.ethers === ethers
 
 
 
@@ -216,5 +268,104 @@ C2: config hardhat và npx hardhat node bth
 => Nhiều lúc deploy lên mạng hardhat localchain bị lỗi nonce. Có thể dùng ganache-cli làm blockchain thay thế fix được lỗi. Ganache ui cũng chạy được nhưng k config được port như cli.
 
 => Tool tenderly giúp fork mạng rất mạnh và thường là chạy được nhưng bản free bị giới hạn 4 tx 1 ngày.
+
+
+
+# Project Web3ReduxFull
+-> Áp dụng PP cũ: nghĩ cơ chế cực cơ bản cốt lõi xong việc lập trình các file phức tạp chẳng qua chỉ là phân chia cái cơ chế cơ bản ra mà thôi
+
+Cơ chế frontend basic: người dùng ấn nút là connect web3, người dùng đổi account thì update data theo account mới
+Quy trình: người dùng ấn nút connect -> gọi hàm connect pop up web3 -> lấy biến account, web3 về -> set nó cho biến state -> state được set đổi -> useEffect sẽ getData lại từ contract và in ra dữ liệu mới(các hàm get trong contract gọi rất nhanh, lâu nhất cũng chỉ tầm 2s thôi) vì ta useEffect cái account với hàm getData mà
+=> Tức cơ chế đơn giản: nút connect bấm là lấy web3, useEffect account/web3 đổi thì gọi getData => chỉ có mỗi 2 cái đó thôi nhưng cần setup dùng redux chia file phức tạp
+
+-> Metamask đã nhập mật khẩu sẽ tự động connect, metamask chưa nhập mật khẩu khi dùng request account or provider.enable() sẽ pop up metamask
+Khi làm app, họ thường check luôn nếu netId k đúng thì hiện pop up yêu cầu người dùng tự chuyển đổi mạng thủ công. Ta có thể bắt nó và check nếu k đúng mạng thì hiện link hướng dẫn đổi mạng cho họ tùy. 
+
+Cơ chế metamask mọi TH:
+Nếu chưa đăng nhập, chưa từng connect với ví
+  Nó sẽ pop up để ta đăng nhập
+    Nếu ta k đăng nhập mà cancel sẽ báo lỗi
+    Nếu ta đăng nhập thì nó sẽ hiển thị ta chọn account nào để đăng nhập
+      Nếu ta k chọn sẽ báo lỗi
+      Nếu chọn thì ok
+Nếu từng connect với trang web này nhưng chưa đăng nhập
+  Nó sẽ pop up để ta đăng nhập
+    Nếu ta không đăng nhập mà cancel sẽ k báo lỗi mà coi là hàm chưa thực hiện xong. Loading vẫn quay và user chỉ có cách tự vào metamask và đăng nhập thủ công
+Nếu đăng nhập và chưa connect với web này
+  Nó pop up yêu cầu ta chọn tk để connect với web này
+Nếu đã đăng nhập đã kết nối thì tự có luôn
+
+Sau khi đã connect metamask, ta đổi account mà account chưa connect, hoặc đổi mạng mà mạng chain đó đã tắt thì nó coi là chưa đổi gì hết và vẫn lấy cái cũ. K cần lo là k có gì kết nối vì đã vào được trang web thì phải từng kết nối với ít nhất 1 tk r
+
+-> Project frontend tự subscribe vào contract mà k cần server
+Ta mặc định render lần đầu tiên là get 1 lần, xong người dùng có thể update or thêm data mới vào thì sau khi thêm xong hệ thống phải bắt event Add (cho hàm update và add cùng 1 event Add cho tiện)
+=> cho subscribe Event ở trong component Info
+
+Để bắt event bắt buộc ta phải dùng websocket vì socket là cái giúp ta thiết lập kết nối real-time. Thực chất ở dự án truffle multisig dùng package truffle contract là nó ngầm dùng websocket rồi. Ta có thể làm như v. Nếu dùng mặc định thì là HttpProvider nhưng thứ ta cần là websocket provider thì có thể đổi sang wss
+=> Chú ý với local là ws thôi VD: ws://127.0.0.1:8545. Còn với infura có thể nó cho wss
+
+-> Hiểu bản chất của server: Tại sao React lại cần 1 static server?
+
+Hiện tượng: khi ta dùng chạy npm start -> nó chạy được file react của ta trên server localhost; khi ta mở file index.html bình thường nó ra trang trắng; khi ta npm run build thì mở index trong build ra trang trắng, sửa thêm . vào đường link thì hiện nhưng k hiện ảnh.
+Máy ta chạy được html là do ta ném nó vào browser thì browser biên dịch HTML và JS ra ui cho ta nhìn thấy. Đó là tất cả và ta có thể coi luôn cái File Explorer của ta như 1 static server cũng được v và khi ta mở file lên thì File Explorer gửi nó cho Browser để biên dịch hiển thị cho ta. FileExplorer k thể fetch API phức tạp lấy các file js rồi xử lý như browser được nên bật html thẻ id của React trống k có gì cả.
+
+Có 2 loại server là static server và dynamic server: static server đơn giản là gửi các trang html, ảnh,.. Nó gửi các file lưu trữ nguyên vẹn cố định; dynamic server gồm static server và các thứ đi kèm VD xử lý routing và connect DB. Dynamic server có khả năng cập nhập các file html gửi tới trình duyệt thông qua http server. Người dùng có thể POST or PUT chẳng hạn để dữ liệu hiển thị trên file html được thay đổi vĩnh viễn và server lưu lại gửi tiếp cho những người khác.
+Mô hình AJAX thì static server serve html cho frontend còn dynamic server lo gửi data các thứ.
+
+Nếu sau khi build ta vẫn muốn chạy file index.html mà k dùng server cơ thì vẫn được bằng cách thêm dấu chấm vào trước mọi link bên trong thì mở được bằng file explorer xem React (Điều này k đúng nếu chưa build vì nó chưa build nó dùng marco môi trường PUBLIC_URL éo gì ấy éo đổi được). NN là vì các file JS và file ảnh khi gặp dấu chấm sẽ hiểu là đường dẫn tương đối của file và browser sẽ lấy đúng các file đó để show ra. Khi chạy bằng server, k cần dấu chấm mà đường dẫn luôn có host là url server đó
+
+Chú ý là thông thường 1 trang web mà chỉ có html, css, png thì là 1 web tĩnh do dữ liệu trên trang k thể thay đổi. Dù có các hàm làm nó thay đổi nhưng khi refresh lại trang thì mọi thứ sẽ về như ban đầu
+Nhưng thực tế ta có thể k cần server mà vẫn làm nó thay đổi được bằng cách khi người dùng tương tác ví dụ thêm 1 bức ảnh, ta có thể lưu bức ảnh nó vào 1 thư mục và lần sau đó truy cập trang web thì ta lấy tất cả file trong thư mục đó ra. Nghe tưởng hay nhưng thực chất k tốt vì data người dùng thêm vào là vô tận mà nếu dùng hosting mà chơi như v nó sẽ ngày càng phình to ra và hosting k còn chỗ chứa vì kích thước cứ tăng dần và quản lý cũng khó. Khi đó ta mới phải dùng đến các db như mongodb, sql.
+
+Giao thưc http là 80 còn https là 443. VD nếu ta gửi request GET tới trang google thì ta gửi qua cổng 443 của remote server để lấy về đây
+
+-> Code website web3 k cần server hay database, chỉ cần contract và frontend.
+Web của ta k có server tự tạo mà dùng server tĩnh thì data đáng lẽ k đổi được nhưng ở đây lại đổi được. NN là vì ta đã dùng blockchain như 1 database. Mỗi lần server lấy hiển thị static file thì phần code JS nó xử lý bằng cách lấy data từ blockchain nên mới đổi được. Ở đây ta có thể coi nó là phần code server cx được. 
+Đúng như nhược điểm của blockchain khi dùng làm database là chậm nhưng minh bạch. Với các dữ liệu mà có thể dùng được local database thì nên dùng để tăng tốc độ.
+
+-> Khi truyền struct vào function trong remix -> như mảng: [999, 18, "Hieu", "Hello", "http"]
+
+Project sử dụng redux thuần chia file chuẩn mà k dùng toolkit. Dùng routing và phân quyền
+
+Sử dụng hook useAsync tự tạo. Hook này gọi 1 hàm async và lấy về các biến error, pending, result, call rất hay
+
+Sử dụng window.ethereum thuần, subscribe event của SM update giao diện real time. 
+Bth người ta thực hiện xong thì update hoặc ping liên tục (với giá cả). Ở đây ta subscribe khi cứ phát 1 event nào thì cần update giao diện của mọi user
+
+
+
+# Other
+-> Example chạy Hardhat với front-end react kết nối vào ví của ta và chuyển token vào ví: 
+Cấu trúc file y hệt: git clone https://github.com/nomiclabs/hardhat-hackathon-boilerplate.git
+cd hardhat-hackathon-boilerplate
+npm install => để cài đặt dự án hiện tại 
+npx hardhat node => để chạy mạng blockchain
+Mở terminal khác deploy contract lên mạng: npx hardhat --network localhost run scripts/deploy.js => nhớ có option localhost nhé, k có là ăn lỗi => Thật ra chả cần --network localhost nếu ta đã config trong file hardhat-config.js vì mặc định là dùng mạng này nhưng ta chưa làm v nên k cần
+Chạy front end: cd hardhat-hackathon-boilerplate/frontend/
+npm install
+npm run start
+Mở tại: http://localhost:3000/
+RPC kết nối ví vào mạng có id 31337
+Lấy Token từ faucet: npx hardhat --network localhost faucet <my address> => là chạy task của hardhat
+=> Ta có thể dùng cấu trúc tương tự để dùng trong dự án riêng của ta
+
+-> Các cách tương tác với blockchain bằng ethersjs và web3js đã biết cho đến h. Ethersjs mới hơn được dùng để thay thế web3 đã cũ. Dù dùng cách nào cx phải có tối thiểu 1 API url project tương tác với network, abi của contract muốn tương tác, address của contract muốn tương tác:
+API url tương tác với network: API infura, API Alchemy or tương đương với Provider http://localhost:<port> ở local, window.ethereum gắn với ví
+abi của contract: vào etherscan lấy abi contract hoặc khi deploy bình thường sẽ được dữ liệu là file json trong đó sẽ có trường abi
+address của contract: deploy thì có, trong file json khi deploy ra cũng có
+
+1) Khởi tạo biến web3 k gắn với ví: const web3 = new Web3(<url>);
+Tương tác với contract nào: const contract = new web3.eth.Contract(<abi>, <address>);
+2) Khi có trình duyệt thì tự động mở metamask kết nối:
+Khởi tạo: const web3Provider = window.ethereum; window.ethereum.enable();
+const web3 = new Web3(web3provider);
+Tương tác với contract nào: dùng như cách 1)
+Nếu dùng truffle thì khi build ra: const <contract> = TruffleContract(<dữ liệu từ file json build ra>); contract.setProvider(web3Provider); => ta kp tách ra abi xong r lấy address nx mà truffle-contract lib làm sẵn
+
+3) ethers dùng tương tác được y hệt như web3 cần 3 dữ liệu đó. Trong hardhat nó biến thành biến global cho ta tương tác với contract bất cứ lúc nào
+4) ethers(dùng ở client thì k dùng như biến global nx)
+Khởi tạo: provider = new ethers.providers.Web3Provider(window.ethereum);
+Khởi tạo contract nào: contract = new ethers.Contract(<contract address>, <abi>, <signer or provider>); => Nếu cung provider thì chỉ đọc được, cung signer gắn với 1 tk thì sẽ chỉnh sửa state đc luôn vì gọi được transaction. 
+VD dùng window.ethereum để tạo provider thì provider đó chính là metamask của ta -> ta dùng getSigner để lấy tài khoản thứ bao nhiêu trong ví và truyền vào làm đối số 3
 
 

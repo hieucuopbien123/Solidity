@@ -154,3 +154,20 @@ pop
   store: { 0x0 => 0x1 }
 => stack empty tức EVM execute thành công contract
 
+
+-> Tổng kết các tool và framework đã biết liên quan tới blockchain smart contract: 
+Tool viết smart contract: solidity extension, truffle, remix, Hardhat
+Tool compile smart contract: solidity extension, truffle, remix, remix extension, Hardhat
+Tool tạo mạng personal blockchain: Ganache-CLI, Ganache-GUI, Truffle Develop, Geth(local mode), Hardhat
+Tool deploy smart contract vào mạng chỉ định: Truffle Migrate, remix, Hardhat
+Tool deploy smart contract có sẵn mạng blockchain test của nó: remix, Hardhat
+Tool test smart contract: remix, Truffle(thư viện Mocha và Chai), Hardhat
+Ví để dùng và test: MetaMask, TrustWallet, Coinbase
+Mạng public để test blockchain: Ropstent, Rinkeby
+GUI cho smart contract: html, javascript, react, (bootstrap, react-redux, redux-saga, react-transition, react-router-dom, react-bootstrap)
+Thư viện giúp tương tác GUI với smart contract của 1 blockchain nào đó: web3js, ethersjs
+Tool tạo personal server cho GUI: Truffle Box(có lite-server), 000webhost
+Backend kết nối với database server: NodeJs, (express, json-server)
+Database: Microsoft SQL server
+Ngôn ngữ lập trình blockchain core: Haskell, Golang, C++, Rust
+

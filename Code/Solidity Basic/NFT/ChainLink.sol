@@ -37,4 +37,4 @@ contract RandomNumberConsumer is VRFConsumerBase {
     }
     // function withdrawLink() external {} - Implement a withdraw function to avoid locking your LINK in the contract
 }
-// để test -> lấy link token gửi cho contract này r gọi hàm getRandomNumber để cập nhập lấy số random và cũng lấy được ra qua fulfillRandomness 
+// Để test -> lấy link token gửi cho contract này r gọi hàm getRandomNumber để cập nhập lấy số random và cũng lấy được ra qua fulfillRandomness 

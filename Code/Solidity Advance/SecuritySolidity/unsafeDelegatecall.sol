@@ -50,6 +50,8 @@ contract HackMe1 {
     }
     function doSomething(uint _num) public {
         lib.delegatecall(abi.encodeWithSignature("doSomething(uint256)", _num));
+        // Or
+        // lib.delegatecall(abi.encodeWithSelector(Lib1.doSomething.selector, _num));
     }
 }
 contract Attack1 {

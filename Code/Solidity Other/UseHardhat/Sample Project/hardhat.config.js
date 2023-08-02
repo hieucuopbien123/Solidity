@@ -1,3 +1,9 @@
+require("hardhat-gas-reporter");
+require('solidity-docgen');
+require('solidity-coverage');
+require("hardhat-interface-generator");
+require("hardhat-if-gen");
+
 const {
   task, types
 } = require("hardhat/config");

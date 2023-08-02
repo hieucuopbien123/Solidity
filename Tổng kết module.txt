@@ -6,6 +6,8 @@ Etherium là 1 phần mềm nên tảng mã nguồn mở. Mọi người có th�
 Ethereum đang phát triển 1 ngôn ngữ lập trình smart contract của riêng nó là FE. 
 Mọi thứ về tốc độ truyền tải hay hiệu suất thì Blockchain Etherium đã làm hết r, tối ưu hết r. Lập trình smart contract chỉ cần tạo và thực hiện rất đơn giản
 
+=> ref tới "Projects / TravaNFTMarketplace / TravaCore"
+
 
 
 # Basic
@@ -63,6 +65,18 @@ Chứ kp là cứ sửa r deploy lại vì khi đó ra đồng coin mới. Vì d
 -> Dùng selfdestruct: đã deprecated => tấn công contract bằng selfdestruct
 -> Dùng require, assert, revert
 -> Dùng struct
+
+-> Create multisig wallet
+-> Dùng các biến có sẵn: block.number, block.timestamp, type(B).creationCode, type(uint).max
+
+-> Phân biệt call, staticcall, delegatecall:
+- call là cách ta gọi 1 hàm của contract khác từ contract này, gọi bất cứ hàm gì, và có thể gọi vào hàm k tồn tại để mục đích gửi tiền cx ok. Call và interface là 2 cách gọi hàm phổ biến nhưng interface phải biết abi còn call thì chả cần. State và function của contract nào thì tác động đúng contract địa chỉ đó rõ ràng như mặc định. EVM trigger việc gọi hàm khác thông qua 4 bytes đầu tiên là hash của method. Tiếp sau đó là các chuỗi có độ dài fix 32 bytes VD trên Etherscan có thể xem:
+MethodID: 0x2d2da806
+[0]: 000000000000000000000000e105ba42b66d08ac7ca7fc48c583599044a6dab3
+thì 0x2d2da806 là 4 bytes đầu của giá trị hash keccak256 của depositETH(address) có thể check bằng công cụ hash keccak online: https://emn178.github.io/online-tools/keccak_256.html, còn giá trị [0] là input method dưới dạng 32bytes được đánh số từ 0. 
+- delegatecall: cũng là gọi hàm của contract khác nhưng state lại là của contract này(2 contract phải đúng thứ tự biến). Người A gọi vào contract B delegate call đến contract C thì msg.sender trong hàm contract C vẫn là A. delegatecall thường được sử dụng trong proxy pattern
+- staticcall cơ bản giống call chỉ khác là dùng staticcall k đổi state của contract. Do đó nó mới ít dùng mà dùng mẹ call luôn vì call gọi được cả view và hàm đổi state. Nếu staticcall 1 contract mà hàm làm đổi state, tx fail và revert.
+=> Cả 3 loại call đều có hàm assembly để thực hiện để tối ưu
 
 
 
@@ -136,6 +150,16 @@ Lib có public, external, ta deploy lên 1 block, các contract khác sẽ dùng
 
 Đôi khi dùng remix nó bị giới hạn quá nh gas k cho deploy, nhưng khi để vào trong lib thì lại ổn.
 
+-> Dùng lib openzeppelin
+OpenZeppelin là công ty chuyên cung các sản phẩn decentralized app. Nó cũng nổi tiếng với các thư viện có sẵn các contract hữu dụng như: Ownable, các loại token, Address, SafeMath, SafeCast, AccessControl,.. Có thể cài npm
+
+SafeMath là library tính toán => Thư viện SafeMath bh k cần thiết nx khi mà phiên bản hiện tại nó đã tự check tràn để báo lỗi, tự có các hàm mulmod rồi
+SafeCast để convert giữa uint và int bao nhiêu bit. VD đổi từ uint sang int8 chẳng hạn
+Thư viện address cung các util cho biến address như isContract, gửi ethers
+AccessControl là contract kiểm soát quyền access của từng người. VD 1 contract muốn ông A là minter, ông B là burner,..
+=> ref tới "Projects / TravaNFTMarketplace / TravaCore"
+
+-> using ShortStrings for *; => khi dùng với mọi type biến trong file này
 
 
 # Transaction
@@ -377,6 +401,13 @@ Interface có thể kế thừa từ 1 interface khác
 
 Khi deploy, ta vào ví -> và thêm token tại địa chỉ là transaction của ta thì ví ta sẽ có token mới đó. Tuy nhiên khi check trên etherscan(testnet cx có etherscan để check transaction), tiền của ta đã có nhưng nó k có thanh khoản, chỉ đáng giá 0 ether. Để tiền của ta có thanh khoản thì ta phải xác định được mục đích nó sinh ra để làm gì. VD ta dùng token để chi trả cho việc truy cập vào 1 ứng dụng nào đó và khi mọi người cần nó, nhiều người dùng nó, nó sẽ bắt đầu có thanh khoản. Tức là ta cần xây dựng thêm 1 hệ thống để token được sử dụng
 
+-> Cơ chế trong dự án thực tế:
+- Khi burn token, họ burn của ai? Các nền tảng phải burn của chính họ. VD họ có sẵn 1 account có token dự phòng và tự burn trong account đó, hoặc họ có 1 pool hệ thống hay pool thưởng cho mọi người thì sẽ burn trong pool đó. Họ burn để cân bằng giá cho token. Tuy nhiên đội dev sẽ phải chịu việc giảm token để duy trì nền tảng.
+
+- Khi mint token, chỉ đội dev được mint? Thực tế nó vẫn là tập trung, do đó các dự án blockchain vẫn dựa vào niềm tin. Có nhiều cơ chế khác như thiết lập multisig nhiều người của đội dev mới cho mint, hoặc thiết kế mô hình DAO trao toàn quyền cho cộng đồng. Hoặc mint tất cả ra totalSupply rồi lock vào contract, sau đó unlock dần dần theo thuật toán. Dù là mint hay unlock đều có phần tập trung và phải dựa vào niềm tin.
+
+- Làm sao để 1 token có giá trị? 1 token khi có giá trị nếu có nhu cầu sử dụng nó. Sau đó 1 người cung token đó lên sàn (CEX phải xác thực, DEX thì tự do), những người khác cần token để dùng trong nền tảng sẽ vào mua lại và nó có thanh khoản thôi.
+
 
 
 # Kế thừa class
@@ -453,7 +484,37 @@ Nhiều lúc họ dùng sha3(msg.data, block.number) để làm identifier nhưn
 Nó gọi là proxy vì nó gọi thông qua 1 contract trung gian, gọi là minimal vì code cực ít, mỗi hàm nếu thích chỉ cần 2 dòng
 
 -> Upgradeable Proxy contract
-Bên trên là mỗi lần update là 1 contract mới Chuẩn thì phải là dùng cùng 1 địa chỉ nhưng đổi được nội dung contract
+Bên trên là mỗi lần update là 1 contract mới chuẩn thì phải là dùng cùng 1 địa chỉ nhưng đổi được nội dung contract
+
+-> Dùng multi delegatecall
+Gọi delegatecall khác với call ở chỗ:
+Chỉ update state của contract gọi chứ k ảnh hưởng tới contract gốc, bao gồm msg.sender, msg.value, storage,..
+msg.sender trong hàm sẽ là của người gọi delegatecall chứ kp contract gọi vì nó như kiểu copy hàm của contract gốc vào và gọi trực tiếp chứ k forward gì cả. Lưu ý nó k copy state mà state contract kia độc lập và ban đầu là mặc định => như này mới đúng***
+
+Nhiều lúc ta muốn 1 contract thực hiện nhiều hàm cùng 1 lúc. Có nhiều cách để perform TH này:
+1) Contract X có 2 hàm A và B, contract X có thể tạo 1 hàm C bên trong gọi cả A và B, người dùng tương tác với hàm C để gọi cả A và B. Đó là 1 cách gọi nhiều hàm của 1 contract trong 1 tx. Nếu sử dụng upgradable contract, ta có thể viết thêm hàm C tùy ý nếu có nhu cầu sử dụng
+2) Viết contract Y kế thừa contract X, trong contract Y viết hàm C để người dùng gọi. Cách này y hệt cách trước. Người ta chỉ cần deploy mỗi Y thôi.
+3) Contract X có 2 hàm A và B, contract Y gọi 2 hàm A và B của contract X thông qua address của X trong hàm C. Người dùng sẽ gọi hàm C => đây là 1 cách rất phổ biến nhưng gặp nhược điểm cực lớn là msg.sender trong A và B là Y chứ kp người dùng. 
+VD: ta có 10 ethers trong contract X, ta gọi hàm rút thông qua contract Y sẽ k được vì msg.sender là Y, nó sẽ k pass qua điều kiện msg.sender phải là owner. Đây cũng là điều hiển nhiên vì lý do bảo mật
+4) Contract X có 2 hàm A và B, contract Y độc lập gọi 2 hàm A và B thông qua call. Tức là:
+X.call(A); X.call(B);
+Nó y hệt như cách 3 chả khác gì. Vì call cũng là 1 cách gọi hàm bth thôi, ta có thể gọi bằng tên nhưng phải định nghĩa contract trong cùng file khi gọi bằng tên nên cách dùng call chuẩn hơn.
+5) Contract X có 2 hàm A và B, contract Y gọi 2 hàm A và B thông qua call. Nhưng X kế thừa Y. Tức là trong Y gọi:
+address(this).call("...");
+=> Cách này tệ hơn cách 3 khi mà msg.sender vẫn là contract Y mà phải thêm điều kiện kế thừa chả có ích gì
+6) Contract X có 2 hàm A và B, contract Y độc lập gọi 2 hàm A và B thông qua delegatecall. Tức là:
+X.delegatecall(A); X.delegatecall(B);
+Tương tự cách 4 nhưng state của contract đổi lại là Y chứ kp X. Nên cách này chỉ dùng khi muốn khởi tạo nhiều contract giống y nhau thôi
+7) Tương tự như TH6, nhưng contract X kế thừa contract Y. Thế thì bên trong contract Y sẽ dùng kiểu:
+address(this).delegatecall(A); address(this).delegatecall(B);
+=> msg.sender là user, lại đổi state đúng của X. Cách này tốt nhất nhưng contract X phải biết mà kế thừa contract Y.
+
+=> Điều này đồng nghĩa ta k thể gom nhiều hàm của 1 contract thành 1 tx duy nhất 1 cách tự do được. Lý tưởng nhất là TH7 thì yêu cầu contract phải đồng ý kế thừa 1 contract Y gọi multidelegatecall.
+
+--> delegate call copy code và thứ tự các biến phải giống nhau, nên 1 contract delegatecall để đổi state từ 2 contract khác thì chả ra làm sao cả vì mỗi contract có cấu trúc biến khác nhau mà.
+
+--> Dùng multidelegate call giúp gọi nhiều hàm thành 1tx rất nguy hiểm. 
+VD: ta gọi hàm deposit 3 lần nhờ multidelegatecall  gửi vào 1ETH nhưng msg.value ta chỉ gửi 1 ở hàm gọi. Thành ra hàm deposit được gọi 3 lần với msg.value đều bằng 1. Rất dễ gây lỗi trong code, khi nó tưởng mình deposit 3 lần thành 3ETh nếu nó viết kiểu: balance[msg.sender]+=msg.value là toang.
 
 
 
@@ -462,10 +523,204 @@ Bên trên là mỗi lần update là 1 contract mới Chuẩn thì phải là d
 
 
 
+# Các EIP khác
+Phân biệt: Ethereum Improvement Proposals(EIP) và Ethereum Request for Comments(ERC)
+ERC là định nghĩa các chuẩn cho việc sử dụng ethereum. Còn EIP định nghĩa ra các cải tiến trong ethereum, nó có thể là ERCs, thay đổi trong protocol or các programming tool or bất cứ 1 thứ gì trong hệ sinh thái ethereum
+=> Mọi ERC đều có EIP tương ứng như các token ta code theo chuẩn ERC-20 thì EIP là thứ công bố sự thay đổi đó. Nếu ta có phát kiến improvement mới thì cũng có thể share in EIPs.
+Về mặt code ta chỉ quan tâm ERC, còn về mặt 1 tài liệu bao trùm mọi sự thay đổi thì phải đọc document EIP của nó. Hiện giờ trên trang https://eips.ethereum.org/erc đã có tổng hợp rất nhiều chuẩn rồi. Các chuẩn ở final chính là đang chính thức được sử dụng rộng rãi
+
+-> EIP165
+Chuẩn EIP-165 là chuẩn để publish và xác định interface nào smart contract đang implement.
+
+-> EIP-2612 
+Hàm permit cải thiện giao diện người dùng giúp thực hiện 1 transaction duy nhất thay cho approve + transferFrom nên chỉ trả 1 lần fee, kp chờ nx
+
+Ta dùng eth-permit để sinh ra 3 tham số r, v, s => nên dùng cách này để approve mọi hàm khi ta làm ẩn trong app
+Mỗi lần ta gọi signERC2612Permit sẽ sinh ra các tham số r, s, v là như nhau. Khi ta dùng signature đó 1 lần r thì lần sau sẽ sinh ra r, v, s khác cái trước vì số nonce thay đổi
+
+-> EIP-1967
+Khi contract A delegatecall contract B, state của contract A sẽ giống contract B. Nhưng khi dùng upgradable ta muốn contract A lưu address của B mà chỉ admin được phép update.
+K thể lưu address vào state vì xung đột. Ta có thể lưu biến private const nhưng như v sẽ k thể đổi giá trị. 
+
+EIP1967 ra đời giúp lưu address vào 1 slot an toàn trong storage, nó đảm bảo slot đó kbh bị gán vào bởi compiler. 
+VD: TransparentUpgradeableProxy
+
+Nó cung vài slot an toàn:
+bytes32(uint256(keccak256('eip1967.proxy.implementation')) - 1)
+bytes32(uint256(keccak256('eip1967.proxy.beacon')) - 1)
+bytes32(uint256(keccak256('eip1967.proxy.admin')) - 1)
+
+
+
+# Upgradable contract
+Deploy 1 contract lên, xong về sau ta lại muốn chỉnh sửa code bên trong contract theo 1 logic mới chẳng hạn. 
+Tưởng dễ nhưng nhiều vấn đề cần giải quyết như tùy vào mức độ chỉnh sửa chỉ muốn thay đổi logic còn params giữ nguyên hay thay đổi params, thay đổi cả giá trị trả về hay không. Contract với data đơn giản dễ đổi hay contract lớn phức tạp. Địa chỉ thay đổi sang 1 contract khác hay vẫn muốn giữ địa chỉ contract cũ. Khi front-end gọi hàm của dự án thì gọi vào 1 địa chỉ thì địa chỉ đó là proxy contract hay là địa chỉ của contract gốc. 
+
+Cơ chế chung là: ta tạo ra 1 contract khác tương tự như v nhưng với logic mới theo ý ta, xong tạo ra 1 proxy contract có owner được quyền update địa chỉ contract để khi muốn gọi hàm nào thì call vào proxy contract để thực hiện trên contract logic mới chứ k dùng địa chỉ cũ nx. Hàm gọi đó sẽ dùng delegatecall để trong fallback. Điều này cũng được openzeppelin thực hiện sẵn và tối ưu hóa gas và tốc độ bằng assembly cho người dùng. 
+
+Giả sử k có delegatecall thì với 1 tư duy thông thường mà muốn update 1 smart contract không phải là không thể. Hướng đi là backup dữ liệu của smart contrac cũ về 1 database realtime, tạo và deploy 1 contract mới theo logic mới, deploy contract mới lên mạng và migrate đống dữ liệu đã backup lên, rồi thay đổi các thứ khác như frontend backend dùng dữ liệu địa chỉ mới và fix các thứ là sự khác biệt giữa 2 contract. 
+=> Tư duy này dùng được khi dữ liệu ít và smart contract mới phải tạo thêm hàm migrate tất cả dữ liệu lên. Phức tạp và k nên dùng vì tập trung quá.
+
+-> Dùng Easy Proxy với delegatecall => K ổn vì nếu có owner, state của contract sẽ đổi khi gọi hàm khác. Có nhiều cách khác, VD ta có thể check msg.sender fix bằng account nào được phép update chứ k lưu state là được.
+
+-> Dùng proxy contract với assembly (Phân tích)
+Các opcode liên quan:
+- calldatacopy(1,0,calldatasize()) => copy size of data từ calldata vị trí 0 vào memory từ vị trí 1
+- delegatecall(gas(),target,0,calldatasize(),0,0) => target là 1 địa chỉ, sẽ delegatecall contract tại địa chỉ target với input là memory từ 0 đến 0+calldatasize với gas là gas() trả ra lượng gas available hiện tại và kết quả output là lưu từ 0 -> 0+0 (2 tham số cuối) và trả ra 0 nếu error
+Full thông tin: https://docs.soliditylang.org/en/v0.5.3/assembly.html
+- returndatacopy(0,0,returndatasize()) => copy size of last returndata từ vị trí 0 vào memory từ vị trí 0. Vì data dù return về nhưng chưa lưu được nên dùng hàm này để lưu
+- revert(0,returndatasize()) => kết thúc và revert state hàm này và trả ra data từ vị trí 0 đến vị trí 0+size of last return data
+
+--> Phiên bản proxy sơ khai nhất như dưới:
+pragma solidity >=0.8.3;
+contract Proxy {
+    address immutable public implementation;
+    event Received(uint indexed value, address indexed sender, bytes data);
+    constructor(address _implementation) {
+        implementation = _implementation;
+    }
+    fallback() external payable {
+        address target = implementation;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            calldatacopy(0, 0, calldatasize())
+            let result := delegatecall(gas(), target, 0, calldatasize(), 0, 0)
+            returndatacopy(0, 0, returndatasize())
+            switch result
+            case 0 {revert(0, returndatasize())}
+            default {return (0, returndatasize())}
+        }
+    }
+    receive() external payable {
+        emit Received(msg.value, msg.sender, "");
+    }
+}
+=> Ở đây những gì nó làm là có 1 cái address k thể thay đổi. Từ khóa immutable khiến cho biến chỉ có thể khởi tạo giá trị ban đầu or trong constructor 1 lần thôi. Và khi ta gọi hàm gì ở 1 contract nào thì thay vì v, ta khởi tạo contract này truyền vào địa chỉ contract đó. R gọi thông qua địa chỉ contract này. Hàm k tồn tại sẽ delegatecall sang địa chỉ là implementation. Ở VD này chả có ứng dụng gì vì dùng immutable, nó chỉ forward luôn thôi.
+
+Mở rộng hơn là proxy dùng để update contract. Nó nhận vào địa chỉ của contract cần dùng và sẽ delegatecall gọi các hàm trong đó; Khi đó bộ nhớ của contract sẽ lưu thêm các biến của contract mà nó gọi vào delegatecall cùng thứ tự bộ nhớ như contract đó; Nên nhớ là contract proxy k hề có các hàm hay biến nào giống như contract SampleLogic1 nhưng ta vẫn có thể gọi hàm(sẽ chạy vào code của SampleLogic1) và lưu state(ở trong Proxy nhưng giống như SampleLogic1); Do đó nếu dùng remix thì phải dùng At Adress để thao tác còn trong code JS thì gọi được bình thường(vì nó gọi vào fallback); Nên nhớ do state chỉ được lưu trong bộ nhớ tại contract có 1 địa chỉ duy nhất là contract proxy nên các biến được lưu ở 1 vị trí k đổi và khi ta chuyển sang contract khác thì ta chỉ đổi logic còn data vẫn lưu ở trong contract proxy đó mà thôi; Trong contract ta có dùng 1 biến là _IMPLEMENTATION_SLOT là vị trí bộ nhớ mà khi cần lấy ta dùng sload assembly để tránh xung đột lưu trữ(thực ra k qtr); Proxy có hàm upgradeTo để update địa chỉ contract mới mà proxy gọi; Sau khi gán địa chỉ contract thực thi cho Proxy thì bất cứ khi nào gọi hàm đó trong proxy sẽ luôn gọi vào hàm mới của nó; Do signature các hàm trong proxy và các hàm trong contract gốc phải khác nhau nên đôi khi họ thêm các số kiểu id vào cuối hàm trong proxy kiểu cố tình để đổi signature cho khác đi, nếu k nó sẽ gọi nhầm vào hàm contract proxy thay vì contract gốc
+
+=> Để tạo 1 upgradable contract còn phức tạp hơn v nhiều. VD phải thêm Owner cho Proxy vì k thể để ai cũng upgrade contract của ta được. Ta có thể dùng các thứ implement sẵn từ openzeppelin => Thật ra contract kiểu trên khá ổn r, thêm ownable nx là dùng đc.
+
+--> Chú ý call có 2 cách: 
+1) ContractOrInterface(<address>).<function>(<params>);
+2) ContractOrInterface public CoI = ContractOrInterface(<address>); từ đó trở đi có thể gọi: CoI.<function>(<params>);
+
+-> VD UpgradeabilityContract hoàn chỉnh
+Khi tạo contract, nó thường tư duy kiểu kế thừa khi mà có thể dùng lại ở bất cứ giai đoạn nào. Chẳng hạn nó muốn thêm 1 tính năng mới cho contract cũ thì nó tạo ra 1 contract mới kế thừa contract cũ r viêt thêm các tính năng or override các tính năng cũ, r lại lồng kế thừa để thêm tiếp tính năng. Bởi vì có thể ta k muốn thêm tính năng đó mà về sau tự dưng lại muốn thêm 1 tính năng khác nx cơ thì vc kế thừa nhiều cấp bậc sẽ giúp tái sử dụng ở mức tối đa -> xàm lol
+VD: Proxy là 1 abstract class chứa hàm gọi delegatecall và gọi trong fallback -> UpgradeableProxy kế thừa Proxy thêm _IMPLEMENTATION_SLOT, load và set và upgrade địa chỉ. Tức là proxy ban đầu k có tính năng update và cái này làm nó có thể update -> TransparentUpgradeableProxy kế thừa từ UpgradeableProxy thêm tính năng admin là owner của contract mà chỉ owner mới được đổi địa chỉ, làm điều này bằng cách định nghĩa lại các hàm set cho thêm modifier ifAdmin là xong, admin cũng phải lưu qua 1 slot chứ k dùng 1 biến lưu -> DAIProxy là proxy dùng trong dự án của ta kế thừa từ TransparentUpgradeableProxy có thể thêm tính năng gì nếu thích
+
+Admin --call--> DaiProxy == TransparentUpgradeableProxy == UpgradeableProxy == Proxy --delegatecall--> real contract
+
+=> Tại sao nó lại chia ra ProxyAdmin trong khi có thể dùng trực tiếp TransparentUpgradeableProxy. Nó làm v để tách rời logic mà chỉ admin thực hiện được ra 1 contract riêng. Admin chỉ tương tác với contract ProxyAdmin thay vì cả contract TransparentUpgradeableProxy. Trong TransparentUpgradeableProxy thì admin chỉ có vai trò thực hiện các hàm liên quan của admin như đổi admin mới và upgrade cái địa chỉ contract implementation mới mà thôi, còn gọi vào các hàm khác sẽ sang fallback gọi delegatecall contract chính. Họ khuyến khích là chỉ dùng 1 dedicated addresss(tk chuyên dụng) làm admin cho 1 contract mà thôi và tk đó k được làm chức năng gì khác. 
+Nếu k làm v, TransparentUpgradeableProxy có thể dùng 1 biến owner cho các hàm của admin để thay thế nhưng sẽ rối vì k tách ra contract riêng, khi admin gọi thông qua interface sẽ thắc mắc là hàm này k rõ admin có được gọi hay k. 
+
+Contract Initializable là contract check 1 hàm initialize của contract(nếu có) sẽ chỉ được gọi 1 lần. VD: 1 contract set owner trong hàm initialize thì chỉ được gọi hàm đó 1 lần thì ta sẽ kế thừa để đảm bảo hàm đó chỉ được gọi 1 lần, thêm modifier initializer vào
+
+--> Cách viết contract upgradable mới:
+Frontend gọi vào address contract TransparentUpgradeableProxy chứ kp địa chỉ contract gốc, cú pháp gọi ở frontend k đổi, cứ như là tương tác trực tiếp ấy
+
+Trong hardhat có tool giúp đơn giản việc upgradable contract:
+Thật ra là ta tùy ý viết trong script deploy. Với vc deploy lần đầu tiên, ta sẽ gọi upgrades.deployProxy (upgrades là biến hardhat hỗ trợ proxy phải npm i về) là hàm của hardhat thực ra là tự động gọi deploy contract gốc và contract proxy và setImplementation hộ cho ta. Các lần sau ta sửa contract sẽ chạy script upgrade auction thì gọi hàm upgrades.upgradeProxy() thực ra cũng là gọi hàm setImplementation ngầm hộ ta. Bản chất k khác gì nhưng nó tạo ra các hàm tầng cao hơn giúp ta dễ sử dụng.
+=> ref tới "Projects / Trava-Core" dùng hardhat + solidity
+
+Khi muốn contract có khả năng upgradable thì khi dùng các contract có sẵn khác của Openzepplin, cũng phải dùng các contract có sẵn các tính năng upgradeable của openzeppelin. Các contract trong Openzeppelin có 2 phiên bản, Vd: ReentrancyGuardUpgradeable và ReentrancyGuard chẳng hạn
+
+***Khi viết upgrade cần tuân thủ quy tắc: Không được thay đổi biến. Nếu ta muốn thêm biến mới thì phải khai báo thêm ở cuối file. Nếu muốn thêm function mới thì nên thêm ở cuối file để phân biệt. Có thể tùy ý xóa function cũ thoải mái. Các function cũ muốn chỉnh sửa kiểu thêm tham số hay bớt tham số hoàn toàn được vì bản chất nó tạo ra 1 function khác hoàn toàn (nên nhớ là proxy contract nó gọi vào fallback nên thêm xóa có ảnh hưởng gì đâu)
+
+-> ***Quy trình tạo 1 contract mới và có khả năng upgradable:
+Tạo contract như bth, nếu kế thừa openzeppelin thì cho kế thừa các contract upgradable
+Nếu có constructor thì xóa đi và cho kế thừa contract Initializable rồi viết logic constructor trong hàm initialize
+Deploy contract đó là lấy address x
+
+C1: 
+Deploy contract TransparentUpgradeableProxy và truyền vào địa chỉ của admin, truyền vào cả address x của contract
+Giả sử sau này update contract, ta deploy lại ra address y
+Admin của TransparentUpgradeableProxy gọi hàm upgradeTo để update địa chỉ từ x thành y
+
+C2:
+Deploy contract ProxyAdmin và người deploy là owner
+Deploy contract TransparentUpgradeableProxy truyền admin là address ProxyAdmin, truyền cả address x của contract
+Giả sử sau này update contract, ta deploy lại ra address y
+Owner của ProxyAdmin có thể gọi hàm upgrade để update địa chỉ từ x thành y
+
+=> C1 sử dụng bth, C2 sử dụng để tách các hàm admin có thể gọi ra contract riêng như đã nói bên trên.
+=> Contract có chữ Upgradable đằng sau chỉ khác contract thg là logic hàm constructor được đặt trong hàm initialize của contract Initializable. Khi tự code contract ta k cần đặt tên như v.
+=> Contract X kế thừa contract YUpgradable thực tế chả có gì đặc biệt, chỉ là logic constructor của YUpgradable được dùng trong hàm initilalize và contract X phải được khởi tạo thông qua delegatecall mà thôi.
+
+
+
+# Dùng liteserver
+-> BrowserSync là công cụ giúp phát triển web mà thôi. Nó như là live reload extension của VSC khi sửa code và save phát là trang web tự động reload lại. BrowserSync giúp web tự động reload khi sửa source, thao tác ở 1 trang web sẽ thể hiện trên nhiều cửa sổ trình duyệt và thiết bị khác, mô phỏng tốc độ kết nối mạng nhanh hay chậm,... => Nếu dùng react tự có sẵn rồi
+Cơ chế là nó dùng WebSocket để detect change mà reload đó
+
+-> Lite-server: sử dụng browserSync library, giả lập 1 server mà ta deploy lên cho người sử dụng, hỗ trợ Single Page App(SPA)
+npm install lite-server --save-dev 
+=> Lệnh --save-dev để lưu câu lệnh chạy lite server vào file package.json là
+"scripts": {
+  "dev": "lite-server"
+} 
+=> chạy bằng: npm run dev
+Còn nếu dùng npm install --global lite-server thì lite-server sẽ là lệnh global và chạy với: lite-server
+Để dùng được ta phải tạo thêm file bs-config.json và thêm thuộc tính server: baseDir là dir chứa các file html, css, js để hiển thị ở front end
+
+Phân biệt: 
+Việc dùng ALT+L+O 1 file html chỉ đơn giản là mở file đó lên trên trình duyệt hiển thị ra thông qua live server trên 1 port. Nó cũng gửi request và máy ta gửi file đó lên cho nó chạy trên 1 port.
+Dùng Lite server cũng tương tự được config GET là khi người dùng request vào cổng nào thì gửi lại file html được config trong bs-config.json.
+
+1 ứng dụng có thể k có server k -> No, 1 ứng dụng luôn luôn cần có 1 server kể cả front hay back. Việc ta chỉ code backend và upload cái file html/js lên 000webhostapp tức là nó tạo ra 1 server có sẵn tự động gửi file index.html lên giống như lite server v nhưng được host domain. Do ta k code backend nên làm v k tùy chỉnh được. Nếu ta code backend server nx, xong cấu hình nó thành public server, thế là ng khác truy cập được vào thôi. Tức là 1 cái tự tạo server cho ta với method GET là file index, 1 cái là ta tự tạo api server xử lý request khác nhau.
+
+-> Hiểu bản chất: Tại sao Web3js dùng được ở front end?
+Thật ra nodejs ra đời đã khiến ranh giới front-end và back-end k còn rõ ràng. Ta đã biết là nodejs code có mỗi 1 tí, quan trọng là nó có nhiều package, có các package chỉ hỗ trợ cho server, package tạo server như express nhưng lại có các package chỉ dùng cho client như react. Và nếu nodejs có module code front-end như v thì trong quá trình sử dụng front end của nodejs, có thể dùng đc 1 số module khác của nodejs. VD: module uuidv4 để sinh số ngẫu nhiên sẽ được dùng cả ở backend server, cả ở frontend với điều kiện front-end đó chạy từ nodejs như create-react-app. Tức là module nào hỗ trợ cả import(front) và require(back) thì dùng được cả ở frontend và backend. Nếu k chạy frontend qua nodejs thì chỉ các module nào có cdn thì mới dùng đc thôi.
+CDN: với cdn thì có các cdn hỗ trợ cho html như bootstrap, có cdn hỗ trợ cho js như web3js. 
+
+VD Có 3 cách để tạo 1 ứng dụng react: 1 là dùng cdn remote thì dùng cdn ở file jsx như bth là dùng được với html thuần; 2 là tải các file react.min.js về local và script tới nó; 3 là dùng package của nodejs để tạo 1 dự án react.
+=> Web3js dùng được ở client là chuyện hiển nhiên. Nếu dùng ở server or code module front-end như react của nodejs thì dùng TT được, nếu dùng html/js bth thì dùng cdn của web3 or tải file web3.min.js về để link cx đc
+
+Hiểu bản chất như v ta có thể tùy biến mọi thứ theo ý ta. Tổng kết:
+Dùng html/css/js file riêng, nếu muốn dùng các thư viện hỗ trợ html hay js thì dùng cdn or copy file remote đó vào local. 
+Dùng front-end module của nodejs dùng được tất cả module khác của nodejs đươc ở front end đó luôn, nếu thư viện đó cho phép import.
+=> Đó là code front end, còn server backend thì vẫn phải dùng 1 file riêng để chạy server và xử lý http request. 
+
+http server và express server đều có thể implement với request nào thì gửi file html nào đi
+lite server cũng điều khiển được cung ra file nào, nó kiểu apache server sẽ serve 1 thư mục ấy
+json-server thì k điều khiển được, nó chỉ dùng để test fetch api từ 1 file json thôi
+
+=> Đó mới chỉ là file html/js riêng để dùng. Kết nối react app của nodejs với server cx tương tự. Lúc này ta k cần server gửi lại file html liên tục cho client nx mà client vào thì sẽ request API đến server để lấy phần data mà thôi (gọi là AJAX).
+
+
+
+# Bản chất web3 esmodule và commonjs
+-> ES Module và CommonJS
+Hàm import chỉ được dùng trong 1 module (ES Module), còn require k được định nghĩa ở front-end mà chỉ định nghĩa trong NodeJS code server (CommonJS)
+
+- Thuở đầu JS chỉ dùng làm frontend, 1 file html js có thể import nhiều file js khác, họ làm v để với mục đích phân hóa module thay vì viết chung 1 file nên gọi là kiểu ES module. Do đó khi thao tác với frontend thuần, ta import 1 file js khác thì file js mà có export đó phải có type module.
+=> Thực tế mặc định code frontend luôn dùng type module mà ta k cần ghi gì thêm nhưng nhiều lúc bị lỗi ta phải specific rõ mới được. Vd: <script type="module">...</script>
+Khi frontend load script type module, nó luôn được load kiểu defer. Tức là: script được load song song với html chứ k chờ đợi; Khi html load hết, script mới thực thi nên đặt ở đâu cũng được; Thứ tự script được bảo toàn, script load trước vẫn được thực thi trước. 
+
+- Khi thao tác với backend, ta dùng require thoải mái vì NodeJS support CommonJS. Thực tế nó sẽ convert sang module bth khi chạy.
+Khi thao tác với front-end module của NodeJS, ta có thể dùng cả require và import vì import là của frontend luôn dùng được r nhưng package của nodejs cũng support luôn CommonJS nên vẫn dùng được require, thg thì dùng import { } from những thứ cần dùng thôi
+
+Như v để dùng được web3 tương tác với blockchain giả sử rinkeby đi thì: hoặc là code nó ở backend file.js thêm module web3 thoải mái, hoặc là tạo front end là 1 module từ NodeJS như create-react-app thì cũng dùng được web3 như ý (vì nó là package support cả require và import).
+
+-> Giả sử ta dùng web3 trong nodejs k dùng front end mà ta muốn gọi 1 hàm view thì rất ok, nhưng gọi 1 transaction thì k được vì provider phải chứa msg.sender để gọi 1 transaction. Khi web3 được dùng thông qua infura url bình thường thì nó mặc định gọi từ địa chỉ 0x00 -> có thể check điều này bằng việc in ra msg.sender hay nói cách khác là địa chỉ không xác định, đơn giản là gọi thôi
+Tức là provider cũng có 2 loại, 1 loại kiểu tương tác lấy thông tin thôi, còn muốn change state thì phải dùng provider gắn liền với 1 tài khoản như window.ethereum => tức là phải dùng front-end của nodejs để làm điều này(or front-end thuần có cdn web3) or import hẳn private key vào server mà thực hiện.
+=> Tuy nhiên thật ra, INFURA bản chât là cung 1 node chứ kp 1 tk, nó là 1 node trên mạng luôn và node này có 1 cái url, ta dùng tài khoản của ta connect vào node này send tx tới network được => Để backend nodeJS cũng call transaction được, ta có thể dùng hàm signTransaction và sendTransaction có pivkey là được thôi
+
+Vì v, kp là package nào của nodejs cũng dùng được ở mọi nơi. Giả sử muốn dùng eth-permit đi thì nó là 1 package của NodeJS nên để dùng nó thì buộc dùng frontend package của NodeJS or backend NodeJS(vì k support cdn) nhưng nó yêu cầu cung provider là người dùng nào đó để nó dùng provider đó tạo transaction cho hàm permit => nếu dùng backend thì để gọi transaction như v phải thông qua 2 hàm signTransaction và sendTransaction nhưng eth-permit k support require của commonjs (dù là 1 package của nodejs) -> buộc dùng front-end của Nodejs nếu muốn dùng eth-permit có sẵn
+=> Ta hiểu bản chất mới có thể biết được phải làm như thế nào. Tương tự trong web3 library có rất nhiều hàm nhưng kp hàm nào ta cũng dùng được ở backend. VD hàm web3.eth.accounts sẽ k trả ra gì cả ở backend vì ta chả có accounts nào cả(trừ khi tự code sinh account or nhúng pivkey vào).
+
+
+
+# Tool Scaffold
+
+
+
 ## Các tool khác
 # Dùng ganache
 # Dùng truffle
 # Dùng hardhat
+# Tool Geth
+# CreateFromScratch
 
 # Gasless tx
 # Project BK Swap
@@ -515,4 +770,58 @@ Có thể debug SM bằng cách đánh dâu breakpoint trong remix -> ấn vào 
 -> Sách trắng là tài liệu cung cấp thông tin phát hành bởi 1 tổ chức để quảng bá cho sản phẩm, dịch vụ của họ. Có thể là tài liệu bán hàng, tài liệu kỹ thuật mô tả chi tiết 1 sản phẩm, phát minh, là công cụ đo lường phản ứng của công chúng, thuyết phục khách hàng,.. 
 
 -> Thử verify merkle tree tx trong solidity
+
+-> Phân biệt các cách giao tiếp client-server:
+Một trang web k giao tiếp giữa server và client thì rất dễ, chỉ cần tương tác qua lại qua các nút bấm là được. Nhưng 1 trang web cần giao tiếp thời gian thực giữa client và server thì phải sử dụng các kỹ thuật: AJAX, long-polling, short-polling, HTML5 server-sent request,.. => chậm, tốn tài nguyên
+
+Có rất nhiều giao thức và mỗi giao thức có rất nhiều tool và trường hợp để sử dụng tạo giao tiếp client-server. Ở đây ta chỉ xét 2 giao thức phổ biến nhất mà dùng cho rất nhiều ứng dụng từ web tới ứng dụng như game, android bth. Đó là TCP và UDP. Dù nó có nhiều tool cho phép implement 2 giao thức này nhưng chung quy lại cơ chế là như nhau(đã biết 2 giao thức này).
+
+TCP và UDP không phải là socket, nó ở tầng thấp hơn. VD việc giao tiếp http request giữa browser và server không phải là socket nhưng vẫn dùng TCP. Đây chỉ là các giao thức cực kỳ phổ biến giúp giao tiếp server-client với nhau. Trên thế giới có đến hàng trăm kiểu giao thức với vô số trường hợp giao tiếp khác nhau chứ k chỉ realtime với cả tĩnh đâu. Ví dụ SMTP giao thức truyền mail cũng chỉ là client và server gửi mail cho nhau, nhưng người ta k dùng các giao thức phổ biến HTTP, TCP, FTP để làm điều đó mà lại dùng SMTP bởi vì nó có những lợi ích riêng tùy TH nên mới dùng như v.
+
+WebSocket giao tiếp client-server bằng TCP. Giao thức thông thường là ws:// và giao thức secure là wss:// VD ta dùng nó trong web3 để giao tiếp vói Ethereum blockchain
+
+Tương tự để giao tiếp web3 với Ethereum network liên tục trong realtime như subscrive an event thì phải dùng các tool có giao thức real time như TCP. Trong web3 cũng hỗ trợ websocket. Ta phải dùng nó thông qua websocket provider or http provider. Để thiết lập kết nối vĩnh viễn, chạy infura api kết nối với ethereum blockchain và tạo provider với API đó là web3 sẽ duy trì kết nối khi chạy ct, còn lại thao tác như bth
+
+-> 2 loại server code blockchain phổ biến:
+Server bắt sự kiện: server sẽ bắt các sự kiện blockchain để lấy tất cả data trong quá khứ và subscribe để lấy các data mới. Sau đó có thể lưu vào DB kèm trường timestamp để sau này server có ngắt cũng biết rằng phải tiếp tục query từ timestamp nào. Nó giúp phục vụ mục đích thống kê, xem lịch sử và k yêu cầu quá mức realtime.
+Server query sự thay đổi và thực hiện các actions. Nó không cần query từ blockchain, VD các trang như coingecko cung giá các token realtime sẵn thông qua REST HTTP. VD defisaver query giá liên tục sau mỗi khoảng thời gian và perform hộ user các actions tương ứng. Hay 1 server query liên tục check thay đổi giá và báo cho users qua telegram
+
+-> Tổng quan:
+###
+# Basic
+# Gas
+# IPFS
+# Event
+# Dùng transfer, send, call
+# Cách gọi hàm của 1 contract khác
+# Library
+# Transaction
+# Mã hóa
+# Data type 
+# Assembly
+# Math trong solidity
+# Chainlink
+# NFT
+# Token Ethereum
+# Kế thừa class
+# Dùng interface
+# Bảo mật Sol
+# Minimal Proxy Contract
+# Access private variable
+# Các EIP khác
+# Upgradable contract
+# Dùng liteserver
+# Bản chất web3 esmodule và commonjs
+# Tool Scaffold
+## Các tool khác
+# Dùng ganache
+# Dùng truffle
+# Dùng hardhat
+# Tool Geth
+# CreateFromScratch
+# Gasless tx
+# Project BK Swap
+# Other
+###
+
 
