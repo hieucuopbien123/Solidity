@@ -229,6 +229,8 @@ Chỉnh truffle-config network develop cho mạng ganache local => truffle migra
 
 => refer tới "Web3 lib / Web3 Advance"
 
+-> Cách dùng ganache-cli fork mainnet kết hợp truffle => ref tới "# Tương tác Uniswap"
+
 
 
 # Other

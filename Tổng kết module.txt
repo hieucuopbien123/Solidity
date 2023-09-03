@@ -162,6 +162,7 @@ AccessControl là contract kiểm soát quyền access của từng người. VD
 -> using ShortStrings for *; => khi dùng với mọi type biến trong file này
 
 
+
 # Transaction
 Mọi transaction đều có nonce, nonce của transaction là số lượng transaction được gửi từ 1 address. Mỗi lần gửi 1 transaction, nonce sẽ tăng lên 1. Tuy nhiên vì 1 trans có thể valid hay k valid nên có quy tắc: trans với nonce là 2 k thể được đào nếu chưa sent transaction có nonce là 0 or 1 trước đó.
 => điều này ngăn cản double-spending vì nonce sẽ xác định thứ tự của transaction
@@ -727,6 +728,83 @@ Vì v, kp là package nào của nodejs cũng dùng được ở mọi nơi. Gi�
 
 
 
+# AAVE dYdX
+Tương tác với 2 contract nền tảng dùng flashloan
+Dùng truffle forkmain net để test
+
+
+
+# Tương tác Uniswap
+-> Cách dùng ganache-cli fork mainnet kết hợp truffle, từ đó lấy DAI và giao dịch trên phiên bản mainnet fork hiện tại. Vd: PROJECT ID = INFURA_API_KEY = 334b94e6fd54411ea35f426ecaf0099d
+=> install truffle và ganache-cli => edit truffle-config là dùng mạng mainet_fork cần đúng 3 thông số như bth là host, port, network_id với network_id bất kỳ khác các cái đã có thì lấy 999 đi; host và port lấy của ganache thì host hiển nhiên là localhost còn port trên gui là 7545, port ganache trên cli là 8545 => cx chỉ là bảo dùng blockchain network của ganache mà thôi, sau đó ta fork sau
+
+Fork mainnet bằng ganache có lợi là ganache là tool vốn để tạo blockchain phục vụ test development. Khi fork thì state của blockchain có y nguyên như mainnet hiện tại nhưng ta lại unlock được bất cứ account nào ta muốn, làm bất cứ điều gì trên blockchain này như là đang thao tác với mainnet nhưng k ảnh hưởng tới mainnet
+
+ganache-cli --fork https://mainnet.infura.io/v3/$INFURA_API_KEY \
+--unlock $<account muốn unlock> \
+--networkId 999 
+=> là chạy được blockchain mainnet fork
+
+-> Lấy balance of DAI và chuyển thử DAI từ account này sang account khác. Phải chọn account nào trên mainnet có sẵn DAI và address gốc của DAI để viết test
+
+npx truffle compile
+npx truffle test <link file test> --network mainnet_fork
+
+-> Test hàm swapExactTokenForToken trong uniswap. Chú ý chọn account có DAI để swap lấy WBTC nhưng account đó cũng phải có ETH vì nếu k sẽ k trả đc fee giao dịch. Ta phải unlock account đó.
+Khi test, nó chạy liên tục từ trên xuống và lưu trạng thái đó vào network, mạng vẫn luôn chạy. VD ta chạy test 2 lần và trong test viét A gửi cho B 1 DAI => sau khi gọi 2 lần thì A đã gửi B 2 DAI nhé
+
+Tình huống: ta có 1000DAI và 0Ether và muốn add liquidity cho uniswap
+Ta sẽ swap 500DAI vào uniswap để nhận về chẳng hạn 4.76Ether thành ra ta còn 500DAI và 4.76Ether thì ta addLiquidity nhưng uniswap lúc này k nhận toàn bộ số coin đó chẳng hạn nó nhận hết DAI r ta còn dư 0.23Ether
+=> Như v k tối ưu, ta cần tạo ra 1 hàm giúp trader optimal one-sided supply rằng có thể addLiquidity chỉ bằng 1 đồng coin với cơ chế như trên nhưng tối ưu là pool nhận hết số coin đó chứ k trả dư lại
+
+Chú ý là x*y=k thì k là hằng số và mỗi khi swap thì tỉ lệ k sẽ thay đổi là phần thưởng phí cho mọi người đó
+Ban đầu: K=A*B
+Về sau: K=(A+(1-f)s)*(B-b) => Với A,B là token trong pool, s là số tiền tokenA ta cần gửi vào để swap, b là số tokenB ta sẽ nhận về để có đúng tỉ lệ; f là 0.3%
+Tỉ lệ về sau là: (A+s)/(B-b)=(A-s)/b
+Kết quả thì s khoản tokenA ta cần gửi vào để swap = nghiệm pt bậc 2
+=> Viết hẳn contract cho swap one-sided luôn 
+Trên mainnet đã có người làm cái này publish lên r
+
+Flash Swap: borrower vay và trả trong cùng 1 transaction. Họ vay và dùng làm gì đó ngay lập tức và trả lại tiền + lãi trong cùng 1 transaction. VD: 1 borrower vay 100DAI của AAVE với Flash Loans -> đi qua uniswap mua 100 token A -> đi qua Mooniswap để bán 100 token A được 110 DAI -> cuối transaction đó, họ trả 100 DAI cho AAVE và 1 DAI là fee-> borrower lãi 9 DAI => đó là 1 use case họ mua bán dựa trên sự chênh lệch giá của 2 platform khác nhau mà k bỏ ra đồng vốn nào hết.
+Flash Swap giúp tạo sự công bằng vì uniswap bị chênh giá nhiều, trong khi những người nào có coin thì họ mới có thể mua sàn này swap sàn kia để kiếm lời chênh lệch giá. Những người k có token đó thì k kiếm lời được thì bất công. Flash swap giúp giải quyết điều đó rằng bất cứ ai cũng kiếm lời đc.
+Điều đặc biệt là flashswap là miễn phí với điều kiện là người dùng trả lại đúng lượng token vay ban đầu ở cuối giao dịch
+
+Các phiên bản cũ của Uniswap kém về hiệu quả sử dụng vốn vì vốn họ cung vào pool k được sử dụng. Uniswap v3 giải quyết bằng cách cho phép các LP cung thanh khoản trong phạm vi giá mà họ đặt ra, tức là thanh khoản tập trung hơn trong phạm vi giá mà hầu hết các hoạt động giao dịch diễn ra. 
+Tức là mỗi Uniswap LP có vị thế là duy nhất vì mỗi người gửi tiền có thể đặt phạm vi giá của riêng họ. Nó như kiểu NFT v của riêng mỗi LP. Ở V2 thì LP có thể gửi vào AAVE or MakerDAO làm ts thế chấp nhưng V3 thì k vì mỗi vị thế là duy nhất.  
+Uniswap v3 cũng triển khai trên layer 2 Optimistic Rollup. 
+
+Khi bơm tiền vào bể, tốt nhất là lúc giá đang ổn định, vì về sau giá tăng hay giảm thì các LP đều phải chịu impermanent loss. Nếu nó quay lại giá ban đầu khi cung vào bể thì lãi fee, nếu nó k quay lại nx thì lỗ
+
+
+
+# Tương tác Curve
+Khi trade 2 đồng stable coin trên Uniswap VD 1,000,000 DAI ta chỉ nhận lại 975,436 USDC trong khi về lý thuyết 2 đồng coin giá ngang nhau. Khi đó lựa chọn tốt hơn là trade trên curve. Nó giúp trade 2 đồng có giá ngang nhau với minimal loss.
+NN vì Uniswap càng trade nhiều thì loss càng nhiều như trên ta trade 1 triệu DAI lận. Nhưng trên curve thì ta có thể nhận lại y nguyên thậm chí là nhiều hơn 1 triệu USDC. Trên đồ thị của uniswap nó cong còn trên Curve nó sát hơn vào 2 trục và phần nằm giữa của nó gần như 1 đường chéo x+y=const dẫn đến nếu ta trade stable coin trên cùng chéo đó thì số tiền nhận ra coi như bằng số tiền nhận vào luôn. Đương nhiên phương trình của nó cũng khác
+=> Ref tới "Tương tác Curve / Cơ chế.png"
+Trong Curve có rất nhiều pool, mỗi pool chứa 1 group các token ngang giá. VD 3pool là pool chứa 3 token DAI, USDC, USDT
+
+-> Chạy Vyper: Khi chạy truffle chỉ cần trong máy có compiler của Vyper rồi thì nó tự compile vyper dù ta k set nó trong config
+
+Để compile VD ở Th này:
+-> npm install bn.js => chứ kp bn
+-> ganache-cli --fork https://mainnet.infura.io/v3/334b94e6fd54411ea35f426ecaf0099d --unlock 0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE --networkId 999 => ở đây ta unlock USDC_WHALE
+-> npx truffle test ./test/test-curve-exchange.js --network mainnet_fork => là chạy test hàm này
+
+-> Cơ chế: Ta muốn trade 2 đồng stable coin với giá ngang nhau 1 DAI ra 1 USDC thì dùng x+y=C với C là tổng số coin trong pool. VD: x+y=100 thì đổi 1 DAI sẽ ra đúng 1 USDC. Nhưng thực tế có sự chênh lệch VD 1 DAI = 1.01$ và 1 USDC = 0.99$ thì người ta sẽ đổi hết lấy đồng có giá trị cao hơn và chẳng mấy chốc pool sẽ hết đồng có giá trị cao.
+Bình thường nhu cầu đổi 2 đồng này là như nhau. Nên để tránh tình trạng đổi như trên, họ dùng hết hợp x+y=C ở đoạn giữa và 2 mép sẽ dùng xy=D để tránh người dùng chơi đểu như v. Còn thông thường đổi sẽ rơi vào giữa, còn ai đổi hết đồng lớn hơn thì k được vì tỉ giá đắt dần. Họ sẽ tạo ra 1 phương trình đồ thị giống uniswap nhưng đoạn giữa dài ra và xấp xỉ đường cheo x+y=C
+Để làm được điều đó: x+y=D; xy=(D/2)^2; => x+y+xy=D+(D/2)^2 => tuy nhiên đồ thị vẫn giống uniswap, họ phải tăng phần x+y=D lên bằng cách nhân thêm X
+=> X(x+y)+xy=XD+(D/2)^2 -> X = 0 thì đồ thị còn xy=(D/2)^2 hệt uniswap -> X=vô cực dương thì X(x+y)=XD còn phần nhân nhỏ bỏ đi sẽ hệt như đường thẳng -> chỉnh X tăng dần làm graph sẽ phẳng dần đổi từ uniswap về constant sum
+
+Ta muốn là khi X nhỏ thì nó giống như uniswap nhưng nếu x+y lớn thì lại k giống uniswap nx -> fix bằng cách ta lấy riêng nó ra X(x+y)=XD => chuẩn hóa thành X(x+y)/D=XD -> XD(x+y)=X*D^2 thế ngược lại DX(x+y)+xy=XD^2+(D/2)^2
+=> Đặt X = Axy/(D/2)^2 -> thế vào -> nhân D/xy 2 vế -> rút gọn thành PT cuối là A*2^2(x+y)+D=AD*2^2+(D/2)^2*D/xy => là PT cuối trong whitepaper -> vẽ nó ra được graph như ý
+A = 0 -> xy=K
+A = vô cực lớn -> x+y=C
+=> Lập được PT toán học
+
+Để add liquidity: vào curve.fi rồi addLiquidity và nhận về LP token. Ta cung vào 1 lượng như nhau các stable coin thì cung lượng stable coin nào có balance càng ít trong pool thì sẽ càng nhận được nhiều LP token hơn. Lượng LP token thể hiện phần trăm sở hữu trong pool từng loại coin. Nó cũng cho phép ta tùy chọn chỉ rút hết 1 loại coin nào cũng được
+
+
+
 # Other
 -> Để liên kết 1 trang web với ví meta mask(để dùng các chức năng của ví), chỉ cần mở extension và chủ động liên kết với trang web.
 Cách khác là dùng JS: ethereum.enabled(); or phiên bản mới dùng: ethereum.request({ method: 'eth_requestAccounts' }) sau đó có thể dùng mọi lệnh js để thao tác với meta mask ở trang web đó. 1 số trang như remix thì phải reset lại web mới thao tác đc với meta mask
@@ -785,6 +863,8 @@ Tương tự để giao tiếp web3 với Ethereum network liên tục trong rea
 -> 2 loại server code blockchain phổ biến:
 Server bắt sự kiện: server sẽ bắt các sự kiện blockchain để lấy tất cả data trong quá khứ và subscribe để lấy các data mới. Sau đó có thể lưu vào DB kèm trường timestamp để sau này server có ngắt cũng biết rằng phải tiếp tục query từ timestamp nào. Nó giúp phục vụ mục đích thống kê, xem lịch sử và k yêu cầu quá mức realtime.
 Server query sự thay đổi và thực hiện các actions. Nó không cần query từ blockchain, VD các trang như coingecko cung giá các token realtime sẵn thông qua REST HTTP. VD defisaver query giá liên tục sau mỗi khoảng thời gian và perform hộ user các actions tương ứng. Hay 1 server query liên tục check thay đổi giá và báo cho users qua telegram
+
+-> Học solidity qua CryptoZombie
 
 -> Tổng quan:
 ###
