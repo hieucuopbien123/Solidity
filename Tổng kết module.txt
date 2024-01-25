@@ -249,13 +249,13 @@ Chú ý: 1 bytes bằng 2 con số bắt đầu tính sau dấu x. VD gặp 1 h�
 
 -> Từ khóa new: 
 Ta đã biết từ khóa new để tạo ra 1 instance mới của contract trong 1 contract khác. Ta còn có thể dùng nó để tạo ra 1 data mới trong function. 
-Với bytes: bytes memory bst = new bytes(<số bytes>); => khai báo ô nhớ mới kiểu bytes, bên trong k lưu gì cả mặc định toàn số 0
+Với bytes: bytes memory bst = new bytes(<số lượng bytes>); => khai báo ô nhớ mới kiểu bytes, bên trong k lưu gì cả mặc định toàn số 0
 Với array: int[] memory a = new int[](<số lượng phần tử>); => khai báo 1 mảng int bao nhiêu phần tử và mặc định tất cả các phần tử là 0
 Với string: string memory a = new string(<số lượng phần tử>); => khai báo null string chiếm 1 lượng ô nhớ
 => khi khai báo với new thì phải specific số lượng phần tử. Khi dùng với string thì khai báo 10 phần tử nhưng dùng 100 phần tử cx đc, nhưng dùng với array thì chỉ đc dùng trong phạm vi đã khai báo vì string nó mặc định là phần tử luôn động còn array thì ta phải quyết định nó động hay tĩnh luôn.
 
 VD: khai báo array với new thì array đó k dùng được hàm push. Nhưng khai báo k dùng new mà chỉ có [] thì lại đc vì nó động. 
-Nhưng lưu ý là trong 1 hàm số, khai báo array động cũng sẽ thành tĩnh nhưng nó hiểu v chứ k báo nên k dùng được push. Muốn push phải khai báo nó biến state của contract
+Nhưng lưu ý là trong 1 hàm số, khai báo array động cũng sẽ thành tĩnh nhưng nó hiểu v chứ k báo nên k dùng được push. Muốn push phải khai báo nó là biến state của contract
 
 -> Có thể convert đủ kiểu
 
