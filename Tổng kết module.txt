@@ -1,12 +1,20 @@
 Solidity
-Solidity là ngôn ngữ hướng đối tượng bậc cao chỉ dùng để viết smart contract chạy trên Ethereum, sau này có thể nâng cấp chạy trên các blockchain khác. Biên dịch Solidity sang EVM bytecode với Solidity compiler. Đuôi file là .sol
 Rust cũng lập trình smart contract, khi đó nó chạy trên Solana or Near chứ k chạy trên Etherium. Đó là 2 hệ sinh thái chạy bằng rust lớn nhất. Có nhiều ngôn ngữ lập trình smart contract.
-Etherium là 1 phần mềm nên tảng mã nguồn mở. Mọi người có thể tải source về và chỉnh sửa r compile để dùng theo sự chỉnh sửa của mình or dùng bản gốc or contact với bên phát hành để đóng góp chỉnh sửa. Ethereum hỗ trợ mọi người tạo ra token, smart contract riêng của họ để phát triển doanh nghiệp, dự án riêng của họ. 
+Ethereum là 1 phần mềm nên tảng mã nguồn mở. Mọi người có thể tải source về và chỉnh sửa r compile để dùng theo sự chỉnh sửa của mình or dùng bản gốc or contact với bên phát hành để đóng góp chỉnh sửa. Ethereum hỗ trợ mọi người tạo ra token, smart contract riêng của họ để phát triển doanh nghiệp, dự án riêng của họ. 
 
 Ethereum đang phát triển 1 ngôn ngữ lập trình smart contract của riêng nó là FE. 
 Mọi thứ về tốc độ truyền tải hay hiệu suất thì Blockchain Etherium đã làm hết r, tối ưu hết r. Lập trình smart contract chỉ cần tạo và thực hiện rất đơn giản
 
 => ref tới "Projects / TravaNFTMarketplace / TravaCore"
+
+
+-> https://solidity-kr.readthedocs.io/ko/latest/assembly.html
+Tổng hợp lệnh assembly của solidity
+
+
+
+-> Scaffold
+Tool mẫu dự án fullstack test rất mạnh
 
 
 
